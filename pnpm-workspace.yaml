@@ -1,0 +1,11 @@
+# Pacotes autorizados a correr scripts de instalação.
+#
+# O pnpm 11 bloqueia scripts pós-instalação por omissão — é defesa contra
+# supply chain, e boa. Mas alguns pacotes precisam mesmo: o esbuild descarrega o
+# binário nativo da plataforma no `postinstall`, e sem ele o tsup e o vitest não
+# arrancam.
+#
+# Declarado aqui em vez de aprovado com `pnpm approve-builds` porque a aprovação
+# interactiva fica numa pasta local e o CI voltaria a falhar.
+allowBuilds:
+  esbuild: true
