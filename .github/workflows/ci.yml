@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Um push novo cancela a corrida anterior do mesmo ramo: ninguém quer o
+# resultado de um commit que já foi substituído.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.20.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # --frozen-lockfile falha se o lockfile não corresponder ao package.json.
+      # É o que impede uma dependência de escorregar para uma versão diferente da
+      # que foi testada localmente.
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm verify
+
+      - run: pnpm build
+
+      # O dist tem de existir: é o que uma dependência git entrega aos dois
+      # consumidores. Um build silenciosamente vazio partiria os dois repos.
+      - name: Confirmar que o build produziu artefactos
+        run: test -f dist/index.js && test -f dist/index.cjs && test -f dist/index.d.ts
