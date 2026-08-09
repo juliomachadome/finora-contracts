@@ -877,14 +877,32 @@ var evidenceSchema = zod.z.object({
 });
 var insightSchema = zod.z.object({
   id: idSchema,
-  organizationId: idSchema,
   type: insightTypeSchema,
   severity: severitySchema,
   period: periodSchema,
-  /** Já traduzido no locale do pedido. */
-  title: zod.z.string(),
-  description: zod.z.string(),
+  /** Ex.: `insights.REVENUE_DECLINE.title`. Resolve-se contra `messages/`. */
+  titleKey: zod.z.string(),
+  /**
+   * A mesma afirmação tem redacções diferentes conforme o que se sabe — com ou
+   * sem os clientes que explicam a queda, com ou sem a comparação com a
+   * carteira. É o detector que escolhe, porque é ele que sabe o que apurou.
+   */
+  descriptionKey: zod.z.string(),
+  /**
+   * Valores para o ICU. Uma lista de nomes viaja como **array**, nunca como
+   * string já unida: o separador de lista muda com o idioma, e juntá-la no
+   * servidor seria escrever português. Quem a junta é o `Intl.ListFormat`.
+   */
+  params: zod.z.record(zod.z.string(), zod.z.union([zod.z.string(), zod.z.number(), zod.z.array(zod.z.string())])),
   metricId: metricIdSchema.nullable(),
+  /**
+   * A entidade a que a afirmação se refere — o cliente que caiu, a rubrica que
+   * estourou. Com o `metricId` e o `period`, é o endereço da prova **e** o
+   * destino do clique: os dois têm de ser a mesma coisa, senão o painel mostra
+   * linhas diferentes das que o clique abre.
+   */
+  entityId: idSchema.nullable(),
+  dimension: zod.z.enum(["customer", "supplier", "category"]).nullable(),
   /** Números que sustentam a afirmação, para a UI mostrar sem recalcular. */
   supportingData: zod.z.record(zod.z.string(), zod.z.number()),
   evidence: evidenceSchema.nullable(),
@@ -892,6 +910,12 @@ var insightSchema = zod.z.object({
   dismissedAt: isoDateTimeSchema.nullable(),
   datasetVersion: zod.z.number().int(),
   createdAt: isoDateTimeSchema
+});
+var insightsResponseSchema = zod.z.object({
+  period: periodSchema,
+  currency: zod.z.string().length(3),
+  datasetVersion: zod.z.number().int(),
+  insights: zod.z.array(insightSchema)
 });
 var recommendationSchema = zod.z.object({
   id: idSchema,
@@ -903,21 +927,41 @@ var recommendationSchema = zod.z.object({
   createdAt: isoDateTimeSchema
 });
 var changeItemSchema = zod.z.object({
-  label: zod.z.string(),
-  metricId: metricIdSchema.nullable(),
-  entityId: idSchema.nullable(),
+  metricId: metricIdSchema,
+  unit: zod.z.string(),
+  /** O valor no período, para a UI não voltar a pedir o resumo. */
+  actual: zod.z.number(),
   changeAbsolute: zod.z.number(),
+  /**
+   * `null` para margens, e para quem não tem base de comparação.
+   *
+   * Uma margem varia em **pontos percentuais**, não em percentagem: de 40% para
+   * 42% são +2pp, e dizer "+5%" é verdade sobre o rácio e enganador sobre o
+   * negócio. Os dois campos existem separados para a UI não ter de adivinhar
+   * qual é o certo — o que estiver preenchido é o que se mostra.
+   */
   changePercent: zod.z.number().nullable(),
   changePoints: zod.z.number().nullable(),
-  direction: zod.z.enum(["UP", "DOWN", "FLAT"]),
+  direction: zod.z.enum(["up", "down"]),
   /** Se subir é bom ou mau depende da métrica: despesa a subir não é vitória. */
-  sentiment: zod.z.enum(["POSITIVE", "NEGATIVE", "NEUTRAL"])
+  sentiment: zod.z.enum(["positive", "negative"])
+});
+var whatChangedResponseSchema = zod.z.object({
+  period: periodSchema,
+  currency: zod.z.string().length(3),
+  changes: zod.z.array(changeItemSchema)
 });
 var insightFilterSchema = zod.z.object({
   period: periodSchema.optional(),
   type: insightTypeSchema.optional(),
   severity: severitySchema.optional(),
-  includeDismissed: zod.z.coerce.boolean().default(false)
+  /**
+   * `z.coerce.boolean()` está proibido aqui, e não é preferência: a coerção do
+   * Zod é `Boolean(valor)`, e qualquer string não vazia é verdadeira —
+   * `?includeDismissed=false` chegaria como `true`. Armadilha já paga uma vez
+   * neste projecto.
+   */
+  includeDismissed: zod.z.enum(["true", "false"]).default("false").transform((valor) => valor === "true")
 });
 var keyPointSchema = zod.z.object({
   type: aiResponseTypeSchema,
@@ -1291,6 +1335,7 @@ exports.importTriggerSchema = importTriggerSchema;
 exports.insightFilterSchema = insightFilterSchema;
 exports.insightSchema = insightSchema;
 exports.insightTypeSchema = insightTypeSchema;
+exports.insightsResponseSchema = insightsResponseSchema;
 exports.inviteMemberInputSchema = inviteMemberInputSchema;
 exports.isoDateSchema = isoDateSchema;
 exports.isoDateTimeSchema = isoDateTimeSchema;
@@ -1360,3 +1405,4 @@ exports.upsertAIProviderConfigInputSchema = upsertAIProviderConfigInputSchema;
 exports.usageSummarySchema = usageSummarySchema;
 exports.varianceContributionSchema = varianceContributionSchema;
 exports.varianceTreeSchema = varianceTreeSchema;
+exports.whatChangedResponseSchema = whatChangedResponseSchema;
