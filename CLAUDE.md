@@ -60,11 +60,34 @@ O passo 4 não é opcional. Subir a versão só de um lado envia uma
 incompatibilidade de contrato para produção, e é precisamente o risco que
 justifica este pacote existir.
 
-## Notas de infraestrutura
+## `dist/` é versionado — e tem de continuar a ser
 
-- `prepare` corre o build. É o hook que uma dependência instalada por git executa
-  — `prepublishOnly` não corre nesse caso, e o `dist/` chegaria vazio aos
-  consumidores.
-- `pnpm-workspace.yaml` autoriza o `esbuild` a correr o `postinstall`. O pnpm 11
-  bloqueia scripts por omissão; sem esta autorização o tsup e o vitest não
-  arrancam, local e no CI.
+Parece errado e não é. O pnpm 11 bloqueia scripts de instalação de dependências
+vindas de git, e a chave de autorização que exige inclui **o SHA do commit**:
+
+```
+allowBuilds:
+  "@finora/contracts@https://codeload.github.com/.../tar.gz/e7f9c9b...": true
+```
+
+Esse SHA muda a cada tag. Cada bump de contratos obrigaria os dois consumidores a
+actualizar um allowlist opaco, e antes disso o build falharia no Vercel, no
+Railway e no CI — que é exactamente o cenário que este pacote existe para evitar.
+
+Entregar o build já feito remove o problema por inteiro, e de caminho melhora a
+postura de supply-chain: nenhum script corre na instalação dos consumidores.
+
+**Consequência prática: ao mudar um schema, corra `pnpm build` e faça commit do
+`dist/`.** Se esquecer, o CI reconstrói, compara e reprova — o risco de os
+consumidores receberem o contrato antigo com o número de versão novo é silencioso
+de mais para depender de disciplina.
+
+Os sourcemaps estão desligados de propósito: um mapa que embuta os caminhos da
+máquina que o gerou faria esse gate falhar sempre, por diferença que não é de
+conteúdo.
+
+## Outras notas de infraestrutura
+
+- `pnpm-workspace.yaml` autoriza o `esbuild` a correr o `postinstall` **neste**
+  repositório (precisa do binário nativo para o tsup e o vitest). Isso não afecta
+  quem consome o pacote.

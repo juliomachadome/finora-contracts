@@ -44,11 +44,21 @@ const amount = moneySchema.parse({ amountCents: 124_000, currency: 'EUR' })
 
 ## Alterar um contrato
 
-1. Mudar o schema e o teste
+1. Mudar o schema **e o teste**
 2. `pnpm verify`
-3. Commit, tag nova (`v0.2.0`), push
-4. **Actualizar a dependência nos dois repositórios no mesmo commit** — subir só
+3. `pnpm build` e commit do `dist/` — é versionado, ver abaixo
+4. Tag nova (`v0.2.0`) e push
+5. **Actualizar a dependência nos dois repositórios no mesmo commit** — subir só
    um lado envia uma incompatibilidade para produção
+
+## Porque o `dist/` está no repositório
+
+O pnpm 11 bloqueia scripts de instalação de dependências git, e a chave de
+autorização inclui o SHA do commit, que muda a cada tag. Entregar o build já feito
+evita isso e faz com que nenhum script corra na instalação dos consumidores.
+
+O CI reconstrói e compara: se o `dist/` estiver desactualizado face ao `src/`, a
+pipeline reprova.
 
 ## Comandos
 
