@@ -28,8 +28,7 @@
     "lint": "eslint .",
     "test": "vitest",
     "test:run": "vitest run",
-    "verify": "pnpm typecheck && pnpm lint && pnpm test:run",
-    "prepare": "pnpm build"
+    "verify": "pnpm typecheck && pnpm lint && pnpm test:run"
   },
   "dependencies": {
     "zod": "^4.1.13"

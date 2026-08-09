@@ -1,0 +1,6 @@
+# O dist é gerado por `pnpm build` e versionado por necessidade (ver CLAUDE.md).
+# Marcá-lo como `linguist-generated` colapsa-o nos diffs do GitHub e tira-o das
+# estatísticas de linguagem — uma revisão de PR deve olhar para `src/`, não para
+# o bundle.
+dist/** linguist-generated=true -diff
+pnpm-lock.yaml linguist-generated=true -diff

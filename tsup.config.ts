@@ -7,7 +7,10 @@ export default defineConfig({
   entry: ['src/index.ts'],
   format: ['esm', 'cjs'],
   dts: true,
-  sourcemap: true,
+  // Sem sourcemap de propósito: o `dist/` é versionado, e um mapa que embuta
+  // caminhos da máquina que o gerou faria o gate de sincronia do CI falhar
+  // sempre, por diferença que não é de conteúdo.
+  sourcemap: false,
   clean: true,
   treeshake: true,
   // O zod fica de fora do bundle: se cada consumidor trouxesse a sua cópia

@@ -39,3 +39,17 @@ jobs:
       # consumidores. Um build silenciosamente vazio partiria os dois repos.
       - name: Confirmar que o build produziu artefactos
         run: test -f dist/index.js && test -f dist/index.cjs && test -f dist/index.d.ts
+
+      # O `dist/` é versionado porque o pnpm 11 bloqueia scripts de instalação de
+      # dependências git. Isso cria um risco novo: alguém muda um schema, esquece
+      # de reconstruir, e os consumidores recebem o contrato antigo com o número
+      # de versão novo — a pior espécie de incompatibilidade, porque é silenciosa.
+      #
+      # Este passo torna o esquecimento impossível: reconstrói e falha se o
+      # resultado diferir do que está no repositório.
+      - name: Confirmar que o dist está sincronizado com o src
+        run: |
+          if ! git diff --exit-code --stat -- dist; then
+            echo "::error::dist/ está desactualizado. Corra 'pnpm build' e faça commit do resultado."
+            exit 1
+          fi
