@@ -1684,7 +1684,7 @@ declare const metricValueSchema: z.ZodObject<{
         RATIO: "RATIO";
         COUNT: "COUNT";
     }>;
-    value: z.ZodNumber;
+    value: z.ZodNullable<z.ZodNumber>;
     currency: z.ZodNullable<z.ZodString>;
     delta: z.ZodNullable<z.ZodObject<{
         current: z.ZodNumber;
@@ -1811,7 +1811,7 @@ declare const dashboardSummarySchema: z.ZodObject<{
             RATIO: "RATIO";
             COUNT: "COUNT";
         }>;
-        value: z.ZodNumber;
+        value: z.ZodNullable<z.ZodNumber>;
         currency: z.ZodNullable<z.ZodString>;
         delta: z.ZodNullable<z.ZodObject<{
             current: z.ZodNumber;

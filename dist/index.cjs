@@ -785,8 +785,18 @@ var metricValueSchema = zod.z.object({
   metricId: metricIdSchema,
   period: periodSchema,
   unit: metricUnitSchema,
-  /** Cêntimos quando MONEY; número simples nas outras unidades. */
-  value: zod.z.number(),
+  /**
+   * Cêntimos quando MONEY; número simples nas outras unidades.
+   *
+   * **`null` significa "não calculável", e não zero.** Uma margem sem receita, um
+   * runway sem queima ou um crescimento sem período anterior não valem zero —
+   * não têm base para existir.
+   *
+   * A distinção não é preciosismo: mostrar "0,0 meses" de autonomia a um CFO
+   * cujo mês foi lucrativo é afirmar um facto falso sobre o negócio dele. A UI
+   * mostra travessão.
+   */
+  value: zod.z.number().nullable(),
   currency: currencySchema.nullable(),
   /** Nulo quando não há período anterior com que comparar. */
   delta: deltaSchema.nullable(),
