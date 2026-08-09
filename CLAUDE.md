@@ -1,6 +1,6 @@
-# finora-contracts
+# praestat-contracts
 
-Schemas Zod e tipos partilhados entre `finora-back` e `finora-web`.
+Schemas Zod e tipos partilhados entre `praestat-back` e `praestat-web`.
 
 Antes de mexer aqui, leia o `CLAUDE.md` da raiz do workspace.
 
@@ -67,7 +67,7 @@ vindas de git, e a chave de autorização que exige inclui **o SHA do commit**:
 
 ```
 allowBuilds:
-  "@finora/contracts@https://codeload.github.com/.../tar.gz/e7f9c9b...": true
+  "@praestat/contracts@https://codeload.github.com/.../tar.gz/e7f9c9b...": true
 ```
 
 Esse SHA muda a cada tag. Cada bump de contratos obrigaria os dois consumidores a

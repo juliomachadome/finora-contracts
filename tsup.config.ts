@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsup'
 
 // ESM e CJS ao mesmo tempo porque os dois consumidores diferem: o Next.js do
-// finora-web resolve ESM, e o NestJS do finora-back compila para CommonJS.
+// praestat-web resolve ESM, e o NestJS do praestat-back compila para CommonJS.
 // Publicar só um formato obrigaria um dos lados a gambiarra de interop.
 export default defineConfig({
   entry: ['src/index.ts'],

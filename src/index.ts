@@ -1,7 +1,7 @@
 /**
- * @finora/contracts
+ * @praestat/contracts
  *
- * Schemas Zod e tipos partilhados entre `finora-back` e `finora-web`.
+ * Schemas Zod e tipos partilhados entre `praestat-back` e `praestat-web`.
  *
  * Existe porque os dois vivem em repositórios separados: sem uma fonte única, o
  * backend muda um campo, o frontend continua a ler o antigo, e o erro só aparece

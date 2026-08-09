@@ -1,7 +1,7 @@
 {
-  "name": "@finora/contracts",
-  "version": "0.2.0",
-  "description": "Schemas Zod e tipos partilhados entre finora-back e finora-web",
+  "name": "@praestat/contracts",
+  "version": "0.3.0",
+  "description": "Schemas Zod e tipos partilhados entre praestat-back e praestat-web",
   "license": "UNLICENSED",
   "packageManager": "pnpm@11.20.0",
   "engines": {

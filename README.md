@@ -1,7 +1,7 @@
-# finora-contracts
+# praestat-contracts
 
-Schemas [Zod](https://zod.dev) e tipos partilhados entre `finora-back` (NestJS) e
-`finora-web` (Next.js).
+Schemas [Zod](https://zod.dev) e tipos partilhados entre `praestat-back` (NestJS) e
+`praestat-web` (Next.js).
 
 ## Porque existe
 
@@ -22,11 +22,11 @@ algoritmo. As aplicações continuam privadas.
 ## Uso
 
 ```bash
-pnpm add "@finora/contracts@github:juliomachadome/finora-contracts#v0.1.0"
+pnpm add "@praestat/contracts@github:juliomachadome/praestat-contracts#v0.3.0"
 ```
 
 ```ts
-import { moneySchema, type Transaction } from '@finora/contracts'
+import { moneySchema, type Transaction } from '@praestat/contracts'
 
 const amount = moneySchema.parse({ amountCents: 124_000, currency: 'EUR' })
 ```
