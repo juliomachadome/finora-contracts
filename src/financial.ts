@@ -133,6 +133,13 @@ export const transactionFilterSchema = paginationQuerySchema.extend({
   maxAmountCents: z.coerce.number().int().optional(),
   sortBy: z.enum(['date', 'amount', 'description']).default('date'),
   sortDir: z.enum(['asc', 'desc']).default('desc'),
+  /**
+   * Salto para uma página numerada. Convive com o cursor, que continua a ser o
+   * caminho por omissão: um cursor diz onde continuar, não onde fica a página 7
+   * — e o explorador é onde alguém procura uma transacção de Março. O tecto de
+   * 200 mantém o custo do salto em milissegundos; para lá dele, filtra-se.
+   */
+  page: z.coerce.number().int().min(1).max(200).optional(),
 })
 export type TransactionFilter = z.infer<typeof transactionFilterSchema>
 

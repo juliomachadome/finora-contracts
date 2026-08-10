@@ -271,6 +271,18 @@ var periodRangeSchema = z.object({
   message: "from tem de ser anterior ou igual a to",
   path: ["from"]
 });
+var auditEventSchema = z.object({
+  id: idSchema,
+  /** Verbo no passado, com pontos: `subscription.changed`, `auth.login`. */
+  action: z.string(),
+  resourceType: z.string().nullable(),
+  resourceId: z.string().nullable(),
+  userId: idSchema.nullable(),
+  metadata: z.record(z.string(), z.unknown()),
+  ipAddress: z.string().nullable(),
+  requestId: z.string().nullable(),
+  createdAt: isoDateTimeSchema
+});
 var PASSWORD_MIN_LENGTH = 12;
 var passwordSchema = z.string().min(PASSWORD_MIN_LENGTH, `m\xEDnimo de ${PASSWORD_MIN_LENGTH} caracteres`).max(200);
 var emailSchema = z.string().email().toLowerCase().trim();
@@ -635,7 +647,14 @@ var transactionFilterSchema = paginationQuerySchema.extend({
   minAmountCents: z.coerce.number().int().optional(),
   maxAmountCents: z.coerce.number().int().optional(),
   sortBy: z.enum(["date", "amount", "description"]).default("date"),
-  sortDir: z.enum(["asc", "desc"]).default("desc")
+  sortDir: z.enum(["asc", "desc"]).default("desc"),
+  /**
+   * Salto para uma página numerada. Convive com o cursor, que continua a ser o
+   * caminho por omissão: um cursor diz onde continuar, não onde fica a página 7
+   * — e o explorador é onde alguém procura uma transacção de Março. O tecto de
+   * 200 mantém o custo do salto em milissegundos; para lá dele, filtra-se.
+   */
+  page: z.coerce.number().int().min(1).max(200).optional()
 });
 var breakdownItemSchema = z.object({
   id: idSchema.nullable(),
@@ -667,6 +686,15 @@ var leadSchema = z.object({
   ownerId: idSchema.nullable(),
   ownerName: z.string().nullable(),
   convertedToCustomerId: idSchema.nullable(),
+  /**
+   * A versão do bloqueio optimista, e viaja na leitura de propósito.
+   *
+   * As rotas de escrita exigem a versão que se leu — sem ela na resposta, um
+   * cliente honesto só pode adivinhar: manda zero, funciona no primeiro lead e
+   * falha em todos os que já foram tocados. Um bloqueio que o consumidor não
+   * consegue satisfazer não é segurança, é uma funcionalidade partida.
+   */
+  version: z.number().int().nonnegative(),
   createdAt: isoDateTimeSchema,
   updatedAt: isoDateTimeSchema
 });
@@ -828,12 +856,30 @@ var metricQuerySchema = z.object({
   comparePeriod: periodSchema.optional(),
   metrics: z.array(metricIdSchema).optional()
 });
+var OVERVIEW_SECTIONS = [
+  "METRICAS",
+  "O_QUE_MUDOU",
+  "ALERTAS",
+  "EVOLUCAO",
+  "CLIENTES",
+  "CATEGORIAS",
+  "ORCAMENTO",
+  "TESOURARIA"
+];
+var overviewSectionSchema = z.enum(OVERVIEW_SECTIONS);
+var overviewShapeSchema = z.object({
+  metricas: z.array(metricIdSchema),
+  seccoes: z.array(overviewSectionSchema),
+  porque: z.array(z.string())
+});
 var dashboardSummarySchema = z.object({
   period: periodSchema,
   comparePeriod: periodSchema,
   currency: currencySchema,
   datasetVersion: z.number().int(),
-  metrics: z.array(metricValueSchema)
+  metrics: z.array(metricValueSchema),
+  /** Opcional para a v0.4.0 continuar válida: sem ele, o painel usa a ordem fixa. */
+  shape: overviewShapeSchema.optional()
 });
 var calculationSchema = z.object({
   metricId: metricIdSchema,
@@ -1228,4 +1274,4 @@ var usageSummarySchema = z.object({
   })
 });
 
-export { ACTIVITY_SUBJECTS, ACTIVITY_TYPES, AI_PROVIDER_KINDS, AI_RESPONSE_TYPES, AI_RETENTION_POLICIES, AI_TASKS, AUDIT_ACTIONS, CONNECTOR_CAPABILITIES, CUSTOMER_STATUSES, DATA_CLASSES, DATA_QUALITY_ISSUE_TYPES, DATA_SOURCE_KINDS, DEFAULT_LOCALE, EXPORT_FORMATS, FORECAST_SCENARIOS, IMPORT_STATES, IMPORT_TRIGGERS, INSIGHT_TYPES, LEAD_STATUSES, LOCALES, METRIC_IDS, METRIC_UNITS, OPPORTUNITY_STAGES, PASSWORD_MIN_LENGTH, PAYMENT_PROVIDERS, PERIOD_GRANULARITIES, PERMISSIONS, PLAN_TIERS, REPORT_SECTION_KINDS, ROLES, ROLE_PERMISSIONS, SCENARIO_TYPES, SEVERITIES, SUBSCRIPTION_STATUSES, TARGET_FIELDS, TRANSACTION_TYPES, activitySchema, activitySubjectSchema, activityTypeSchema, aiAnswerSchema, aiConversationSchema, aiMessageSchema, aiPrivacyStatusSchema, aiProviderConfigSchema, aiProviderKindSchema, aiRecommendationSchema, aiResponseTypeSchema, aiRetentionPolicySchema, aiTaskSchema, aiUsageSchema, aiUsageSummarySchema, apiErrorSchema, askInputSchema, assumptionSchema, auditActionSchema, authResponseSchema, brandingConfigSchema, breakdownItemSchema, budgetSchema, calculationSchema, categorySchema, changeItemSchema, checkoutSessionSchema, columnMappingSchema, confirmMappingInputSchema, connectionHealthSchema, connectorCapabilitySchema, createCheckoutInputSchema, createLeadInputSchema, createOpportunityInputSchema, currencySchema, customerSchema, customerStatusSchema, dashboardSummarySchema, dataClassSchema, dataQualityIssueSchema, dataQualityIssueTypeSchema, dataQualitySummarySchema, dataSourceKindSchema, dataSourceSchema, datasetSchema, deltaSchema, discoveredEntitySchema, discoveredFieldSchema, discoveredSchemaSchema, emailSchema, evidenceSchema, evidenceTransactionSchema, exportFormatSchema, exportRequestSchema, exportResultSchema, forecastPointSchema, forecastScenarioSchema, forecastSchema, generateReportInputSchema, idSchema, importFilterSchema, importMappingSchema, importProgressSchema, importSchema, importStateSchema, importTriggerSchema, insightFilterSchema, insightSchema, insightTypeSchema, insightsResponseSchema, inviteMemberInputSchema, isoDateSchema, isoDateTimeSchema, keyPointSchema, leadFilterSchema, leadSchema, leadStatusSchema, lineageRefSchema, localeSchema, loginInputSchema, memberSchema, membershipSchema, metricIdSchema, metricNodeSpecSchema, metricQuerySchema, metricUnitSchema, metricValueSchema, moneySchema, opportunitySchema, opportunityStageSchema, organizationSchema, organizationSettingsSchema, paginatedSchema, paginationQuerySchema, partnerSchema, passwordSchema, paymentProviderSchema, percentageSchema, periodGranularitySchema, periodRangeSchema, periodSchema, permissionSchema, pipelineSummarySchema, planLimitsSchema, planSchema, planTierSchema, recommendationSchema, refreshInputSchema, reportMetadataSchema, reportSchema, reportSectionKindSchema, reportSectionSchema, requestPasswordResetInputSchema, resetPasswordInputSchema, roleSchema, scenarioImpactSchema, scenarioInputSchema, scenarioResultSchema, scenarioTypeSchema, sessionOrganizationSchema, sessionUserSchema, severitySchema, signupInputSchema, subscriptionSchema, subscriptionStatusSchema, supplierSchema, syncCursorSchema, targetFieldSchema, timeSeriesPointSchema, tokenPairSchema, transactionFilterSchema, transactionSchema, transactionTypeSchema, updateLeadInputSchema, updateOrganizationSettingsInputSchema, upsertAIProviderConfigInputSchema, usageSummarySchema, varianceContributionSchema, varianceTreeSchema, whatChangedResponseSchema };
+export { ACTIVITY_SUBJECTS, ACTIVITY_TYPES, AI_PROVIDER_KINDS, AI_RESPONSE_TYPES, AI_RETENTION_POLICIES, AI_TASKS, AUDIT_ACTIONS, CONNECTOR_CAPABILITIES, CUSTOMER_STATUSES, DATA_CLASSES, DATA_QUALITY_ISSUE_TYPES, DATA_SOURCE_KINDS, DEFAULT_LOCALE, EXPORT_FORMATS, FORECAST_SCENARIOS, IMPORT_STATES, IMPORT_TRIGGERS, INSIGHT_TYPES, LEAD_STATUSES, LOCALES, METRIC_IDS, METRIC_UNITS, OPPORTUNITY_STAGES, OVERVIEW_SECTIONS, PASSWORD_MIN_LENGTH, PAYMENT_PROVIDERS, PERIOD_GRANULARITIES, PERMISSIONS, PLAN_TIERS, REPORT_SECTION_KINDS, ROLES, ROLE_PERMISSIONS, SCENARIO_TYPES, SEVERITIES, SUBSCRIPTION_STATUSES, TARGET_FIELDS, TRANSACTION_TYPES, activitySchema, activitySubjectSchema, activityTypeSchema, aiAnswerSchema, aiConversationSchema, aiMessageSchema, aiPrivacyStatusSchema, aiProviderConfigSchema, aiProviderKindSchema, aiRecommendationSchema, aiResponseTypeSchema, aiRetentionPolicySchema, aiTaskSchema, aiUsageSchema, aiUsageSummarySchema, apiErrorSchema, askInputSchema, assumptionSchema, auditActionSchema, auditEventSchema, authResponseSchema, brandingConfigSchema, breakdownItemSchema, budgetSchema, calculationSchema, categorySchema, changeItemSchema, checkoutSessionSchema, columnMappingSchema, confirmMappingInputSchema, connectionHealthSchema, connectorCapabilitySchema, createCheckoutInputSchema, createLeadInputSchema, createOpportunityInputSchema, currencySchema, customerSchema, customerStatusSchema, dashboardSummarySchema, dataClassSchema, dataQualityIssueSchema, dataQualityIssueTypeSchema, dataQualitySummarySchema, dataSourceKindSchema, dataSourceSchema, datasetSchema, deltaSchema, discoveredEntitySchema, discoveredFieldSchema, discoveredSchemaSchema, emailSchema, evidenceSchema, evidenceTransactionSchema, exportFormatSchema, exportRequestSchema, exportResultSchema, forecastPointSchema, forecastScenarioSchema, forecastSchema, generateReportInputSchema, idSchema, importFilterSchema, importMappingSchema, importProgressSchema, importSchema, importStateSchema, importTriggerSchema, insightFilterSchema, insightSchema, insightTypeSchema, insightsResponseSchema, inviteMemberInputSchema, isoDateSchema, isoDateTimeSchema, keyPointSchema, leadFilterSchema, leadSchema, leadStatusSchema, lineageRefSchema, localeSchema, loginInputSchema, memberSchema, membershipSchema, metricIdSchema, metricNodeSpecSchema, metricQuerySchema, metricUnitSchema, metricValueSchema, moneySchema, opportunitySchema, opportunityStageSchema, organizationSchema, organizationSettingsSchema, overviewSectionSchema, overviewShapeSchema, paginatedSchema, paginationQuerySchema, partnerSchema, passwordSchema, paymentProviderSchema, percentageSchema, periodGranularitySchema, periodRangeSchema, periodSchema, permissionSchema, pipelineSummarySchema, planLimitsSchema, planSchema, planTierSchema, recommendationSchema, refreshInputSchema, reportMetadataSchema, reportSchema, reportSectionKindSchema, reportSectionSchema, requestPasswordResetInputSchema, resetPasswordInputSchema, roleSchema, scenarioImpactSchema, scenarioInputSchema, scenarioResultSchema, scenarioTypeSchema, sessionOrganizationSchema, sessionUserSchema, severitySchema, signupInputSchema, subscriptionSchema, subscriptionStatusSchema, supplierSchema, syncCursorSchema, targetFieldSchema, timeSeriesPointSchema, tokenPairSchema, transactionFilterSchema, transactionSchema, transactionTypeSchema, updateLeadInputSchema, updateOrganizationSettingsInputSchema, upsertAIProviderConfigInputSchema, usageSummarySchema, varianceContributionSchema, varianceTreeSchema, whatChangedResponseSchema };

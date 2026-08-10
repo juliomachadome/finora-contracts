@@ -42,6 +42,15 @@ export const leadSchema = z.object({
   ownerId: idSchema.nullable(),
   ownerName: z.string().nullable(),
   convertedToCustomerId: idSchema.nullable(),
+  /**
+   * A versão do bloqueio optimista, e viaja na leitura de propósito.
+   *
+   * As rotas de escrita exigem a versão que se leu — sem ela na resposta, um
+   * cliente honesto só pode adivinhar: manda zero, funciona no primeiro lead e
+   * falha em todos os que já foram tocados. Um bloqueio que o consumidor não
+   * consegue satisfazer não é segurança, é uma funcionalidade partida.
+   */
+  version: z.number().int().nonnegative(),
   createdAt: isoDateTimeSchema,
   updatedAt: isoDateTimeSchema,
 })

@@ -273,6 +273,18 @@ var periodRangeSchema = zod.z.object({
   message: "from tem de ser anterior ou igual a to",
   path: ["from"]
 });
+var auditEventSchema = zod.z.object({
+  id: idSchema,
+  /** Verbo no passado, com pontos: `subscription.changed`, `auth.login`. */
+  action: zod.z.string(),
+  resourceType: zod.z.string().nullable(),
+  resourceId: zod.z.string().nullable(),
+  userId: idSchema.nullable(),
+  metadata: zod.z.record(zod.z.string(), zod.z.unknown()),
+  ipAddress: zod.z.string().nullable(),
+  requestId: zod.z.string().nullable(),
+  createdAt: isoDateTimeSchema
+});
 var PASSWORD_MIN_LENGTH = 12;
 var passwordSchema = zod.z.string().min(PASSWORD_MIN_LENGTH, `m\xEDnimo de ${PASSWORD_MIN_LENGTH} caracteres`).max(200);
 var emailSchema = zod.z.string().email().toLowerCase().trim();
@@ -637,7 +649,14 @@ var transactionFilterSchema = paginationQuerySchema.extend({
   minAmountCents: zod.z.coerce.number().int().optional(),
   maxAmountCents: zod.z.coerce.number().int().optional(),
   sortBy: zod.z.enum(["date", "amount", "description"]).default("date"),
-  sortDir: zod.z.enum(["asc", "desc"]).default("desc")
+  sortDir: zod.z.enum(["asc", "desc"]).default("desc"),
+  /**
+   * Salto para uma página numerada. Convive com o cursor, que continua a ser o
+   * caminho por omissão: um cursor diz onde continuar, não onde fica a página 7
+   * — e o explorador é onde alguém procura uma transacção de Março. O tecto de
+   * 200 mantém o custo do salto em milissegundos; para lá dele, filtra-se.
+   */
+  page: zod.z.coerce.number().int().min(1).max(200).optional()
 });
 var breakdownItemSchema = zod.z.object({
   id: idSchema.nullable(),
@@ -669,6 +688,15 @@ var leadSchema = zod.z.object({
   ownerId: idSchema.nullable(),
   ownerName: zod.z.string().nullable(),
   convertedToCustomerId: idSchema.nullable(),
+  /**
+   * A versão do bloqueio optimista, e viaja na leitura de propósito.
+   *
+   * As rotas de escrita exigem a versão que se leu — sem ela na resposta, um
+   * cliente honesto só pode adivinhar: manda zero, funciona no primeiro lead e
+   * falha em todos os que já foram tocados. Um bloqueio que o consumidor não
+   * consegue satisfazer não é segurança, é uma funcionalidade partida.
+   */
+  version: zod.z.number().int().nonnegative(),
   createdAt: isoDateTimeSchema,
   updatedAt: isoDateTimeSchema
 });
@@ -830,12 +858,30 @@ var metricQuerySchema = zod.z.object({
   comparePeriod: periodSchema.optional(),
   metrics: zod.z.array(metricIdSchema).optional()
 });
+var OVERVIEW_SECTIONS = [
+  "METRICAS",
+  "O_QUE_MUDOU",
+  "ALERTAS",
+  "EVOLUCAO",
+  "CLIENTES",
+  "CATEGORIAS",
+  "ORCAMENTO",
+  "TESOURARIA"
+];
+var overviewSectionSchema = zod.z.enum(OVERVIEW_SECTIONS);
+var overviewShapeSchema = zod.z.object({
+  metricas: zod.z.array(metricIdSchema),
+  seccoes: zod.z.array(overviewSectionSchema),
+  porque: zod.z.array(zod.z.string())
+});
 var dashboardSummarySchema = zod.z.object({
   period: periodSchema,
   comparePeriod: periodSchema,
   currency: currencySchema,
   datasetVersion: zod.z.number().int(),
-  metrics: zod.z.array(metricValueSchema)
+  metrics: zod.z.array(metricValueSchema),
+  /** Opcional para a v0.4.0 continuar válida: sem ele, o painel usa a ordem fixa. */
+  shape: overviewShapeSchema.optional()
 });
 var calculationSchema = zod.z.object({
   metricId: metricIdSchema,
@@ -1253,6 +1299,7 @@ exports.LOCALES = LOCALES;
 exports.METRIC_IDS = METRIC_IDS;
 exports.METRIC_UNITS = METRIC_UNITS;
 exports.OPPORTUNITY_STAGES = OPPORTUNITY_STAGES;
+exports.OVERVIEW_SECTIONS = OVERVIEW_SECTIONS;
 exports.PASSWORD_MIN_LENGTH = PASSWORD_MIN_LENGTH;
 exports.PAYMENT_PROVIDERS = PAYMENT_PROVIDERS;
 exports.PERIOD_GRANULARITIES = PERIOD_GRANULARITIES;
@@ -1285,6 +1332,7 @@ exports.apiErrorSchema = apiErrorSchema;
 exports.askInputSchema = askInputSchema;
 exports.assumptionSchema = assumptionSchema;
 exports.auditActionSchema = auditActionSchema;
+exports.auditEventSchema = auditEventSchema;
 exports.authResponseSchema = authResponseSchema;
 exports.brandingConfigSchema = brandingConfigSchema;
 exports.breakdownItemSchema = breakdownItemSchema;
@@ -1358,6 +1406,8 @@ exports.opportunitySchema = opportunitySchema;
 exports.opportunityStageSchema = opportunityStageSchema;
 exports.organizationSchema = organizationSchema;
 exports.organizationSettingsSchema = organizationSettingsSchema;
+exports.overviewSectionSchema = overviewSectionSchema;
+exports.overviewShapeSchema = overviewShapeSchema;
 exports.paginatedSchema = paginatedSchema;
 exports.paginationQuerySchema = paginationQuerySchema;
 exports.partnerSchema = partnerSchema;

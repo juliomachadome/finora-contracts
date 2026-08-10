@@ -155,6 +155,34 @@ export const metricQuerySchema = z.object({
 })
 export type MetricQuery = z.infer<typeof metricQuerySchema>
 
+/**
+ * As secções que a Visão geral pode ter, e a forma que o negócio lhe dá.
+ *
+ * A composição é derivada dos dados, não gerada: sem orçamento carregado não há
+ * desvio que mostrar, e um cliente a valer 40% da receita sobe para primeiro.
+ * O `porque` transporta as razões — é o que impede um painel que muda de forma
+ * de se ler como instabilidade.
+ */
+export const OVERVIEW_SECTIONS = [
+  'METRICAS',
+  'O_QUE_MUDOU',
+  'ALERTAS',
+  'EVOLUCAO',
+  'CLIENTES',
+  'CATEGORIAS',
+  'ORCAMENTO',
+  'TESOURARIA',
+] as const
+export const overviewSectionSchema = z.enum(OVERVIEW_SECTIONS)
+export type OverviewSection = z.infer<typeof overviewSectionSchema>
+
+export const overviewShapeSchema = z.object({
+  metricas: z.array(metricIdSchema),
+  seccoes: z.array(overviewSectionSchema),
+  porque: z.array(z.string()),
+})
+export type OverviewShape = z.infer<typeof overviewShapeSchema>
+
 /** Resposta do Overview, num só pedido para o dashboard não fazer dez. */
 export const dashboardSummarySchema = z.object({
   period: periodSchema,
@@ -162,5 +190,7 @@ export const dashboardSummarySchema = z.object({
   currency: currencySchema,
   datasetVersion: z.number().int(),
   metrics: z.array(metricValueSchema),
+  /** Opcional para a v0.4.0 continuar válida: sem ele, o painel usa a ordem fixa. */
+  shape: overviewShapeSchema.optional(),
 })
 export type DashboardSummary = z.infer<typeof dashboardSummarySchema>

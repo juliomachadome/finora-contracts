@@ -427,6 +427,30 @@ declare const periodRangeSchema: z.ZodObject<{
 type PeriodRange = z.infer<typeof periodRangeSchema>;
 
 /**
+ * O registo de auditoria (§77).
+ *
+ * Append-only do lado do servidor: este contrato só descreve leitura, e é de
+ * propósito que não existe schema de escrita nem de alteração — um registo que
+ * se pode editar não é prova, e é como prova que ele existe.
+ *
+ * O `metadata` nunca transporta valores sensíveis: guarda o suficiente para
+ * reconstruir o quê, quem e quando. Um registo que precise de ser tratado como
+ * confidencial não se pode entregar a um auditor, o que anula a razão de existir.
+ */
+declare const auditEventSchema: z.ZodObject<{
+    id: z.ZodString;
+    action: z.ZodString;
+    resourceType: z.ZodNullable<z.ZodString>;
+    resourceId: z.ZodNullable<z.ZodString>;
+    userId: z.ZodNullable<z.ZodString>;
+    metadata: z.ZodRecord<z.ZodString, z.ZodUnknown>;
+    ipAddress: z.ZodNullable<z.ZodString>;
+    requestId: z.ZodNullable<z.ZodString>;
+    createdAt: z.ZodISODateTime;
+}, z.core.$strip>;
+type AuditEvent = z.infer<typeof auditEventSchema>;
+
+/**
  * Autenticação — JWT próprio, sem dependência de fornecedor.
  *
  * O §7.4 exige modo on-premise e o §113 proíbe o domínio conhecer Supabase.
@@ -1321,6 +1345,7 @@ declare const transactionFilterSchema: z.ZodObject<{
         asc: "asc";
         desc: "desc";
     }>>;
+    page: z.ZodOptional<z.ZodCoercedNumber<unknown>>;
 }, z.core.$strip>;
 type TransactionFilter = z.infer<typeof transactionFilterSchema>;
 /** Agregado por dimensão — clientes, categorias, fornecedores. */
@@ -1388,6 +1413,7 @@ declare const leadSchema: z.ZodObject<{
     ownerId: z.ZodNullable<z.ZodString>;
     ownerName: z.ZodNullable<z.ZodString>;
     convertedToCustomerId: z.ZodNullable<z.ZodString>;
+    version: z.ZodNumber;
     createdAt: z.ZodISODateTime;
     updatedAt: z.ZodISODateTime;
 }, z.core.$strip>;
@@ -1775,6 +1801,61 @@ declare const metricQuerySchema: z.ZodObject<{
     }>>>;
 }, z.core.$strip>;
 type MetricQuery = z.infer<typeof metricQuerySchema>;
+/**
+ * As secções que a Visão geral pode ter, e a forma que o negócio lhe dá.
+ *
+ * A composição é derivada dos dados, não gerada: sem orçamento carregado não há
+ * desvio que mostrar, e um cliente a valer 40% da receita sobe para primeiro.
+ * O `porque` transporta as razões — é o que impede um painel que muda de forma
+ * de se ler como instabilidade.
+ */
+declare const OVERVIEW_SECTIONS: readonly ["METRICAS", "O_QUE_MUDOU", "ALERTAS", "EVOLUCAO", "CLIENTES", "CATEGORIAS", "ORCAMENTO", "TESOURARIA"];
+declare const overviewSectionSchema: z.ZodEnum<{
+    METRICAS: "METRICAS";
+    O_QUE_MUDOU: "O_QUE_MUDOU";
+    ALERTAS: "ALERTAS";
+    EVOLUCAO: "EVOLUCAO";
+    CLIENTES: "CLIENTES";
+    CATEGORIAS: "CATEGORIAS";
+    ORCAMENTO: "ORCAMENTO";
+    TESOURARIA: "TESOURARIA";
+}>;
+type OverviewSection = z.infer<typeof overviewSectionSchema>;
+declare const overviewShapeSchema: z.ZodObject<{
+    metricas: z.ZodArray<z.ZodEnum<{
+        REVENUE: "REVENUE";
+        CUSTOMER_CONCENTRATION: "CUSTOMER_CONCENTRATION";
+        EXPENSES: "EXPENSES";
+        COGS: "COGS";
+        OPEX: "OPEX";
+        CASH: "CASH";
+        ACCOUNTS_RECEIVABLE: "ACCOUNTS_RECEIVABLE";
+        ACCOUNTS_PAYABLE: "ACCOUNTS_PAYABLE";
+        BUDGETED_EXPENSES: "BUDGETED_EXPENSES";
+        GROSS_PROFIT: "GROSS_PROFIT";
+        GROSS_MARGIN: "GROSS_MARGIN";
+        OPERATING_PROFIT: "OPERATING_PROFIT";
+        EBITDA: "EBITDA";
+        EBITDA_MARGIN: "EBITDA_MARGIN";
+        REVENUE_GROWTH: "REVENUE_GROWTH";
+        EXPENSE_GROWTH: "EXPENSE_GROWTH";
+        BURN: "BURN";
+        RUNWAY: "RUNWAY";
+        BUDGET_VARIANCE: "BUDGET_VARIANCE";
+    }>>;
+    seccoes: z.ZodArray<z.ZodEnum<{
+        METRICAS: "METRICAS";
+        O_QUE_MUDOU: "O_QUE_MUDOU";
+        ALERTAS: "ALERTAS";
+        EVOLUCAO: "EVOLUCAO";
+        CLIENTES: "CLIENTES";
+        CATEGORIAS: "CATEGORIAS";
+        ORCAMENTO: "ORCAMENTO";
+        TESOURARIA: "TESOURARIA";
+    }>>;
+    porque: z.ZodArray<z.ZodString>;
+}, z.core.$strip>;
+type OverviewShape = z.infer<typeof overviewShapeSchema>;
 /** Resposta do Overview, num só pedido para o dashboard não fazer dez. */
 declare const dashboardSummarySchema: z.ZodObject<{
     period: z.ZodString;
@@ -1821,6 +1902,40 @@ declare const dashboardSummarySchema: z.ZodObject<{
             changePoints: z.ZodOptional<z.ZodNullable<z.ZodNumber>>;
         }, z.core.$strip>>;
         datasetVersion: z.ZodNumber;
+    }, z.core.$strip>>;
+    shape: z.ZodOptional<z.ZodObject<{
+        metricas: z.ZodArray<z.ZodEnum<{
+            REVENUE: "REVENUE";
+            CUSTOMER_CONCENTRATION: "CUSTOMER_CONCENTRATION";
+            EXPENSES: "EXPENSES";
+            COGS: "COGS";
+            OPEX: "OPEX";
+            CASH: "CASH";
+            ACCOUNTS_RECEIVABLE: "ACCOUNTS_RECEIVABLE";
+            ACCOUNTS_PAYABLE: "ACCOUNTS_PAYABLE";
+            BUDGETED_EXPENSES: "BUDGETED_EXPENSES";
+            GROSS_PROFIT: "GROSS_PROFIT";
+            GROSS_MARGIN: "GROSS_MARGIN";
+            OPERATING_PROFIT: "OPERATING_PROFIT";
+            EBITDA: "EBITDA";
+            EBITDA_MARGIN: "EBITDA_MARGIN";
+            REVENUE_GROWTH: "REVENUE_GROWTH";
+            EXPENSE_GROWTH: "EXPENSE_GROWTH";
+            BURN: "BURN";
+            RUNWAY: "RUNWAY";
+            BUDGET_VARIANCE: "BUDGET_VARIANCE";
+        }>>;
+        seccoes: z.ZodArray<z.ZodEnum<{
+            METRICAS: "METRICAS";
+            O_QUE_MUDOU: "O_QUE_MUDOU";
+            ALERTAS: "ALERTAS";
+            EVOLUCAO: "EVOLUCAO";
+            CLIENTES: "CLIENTES";
+            CATEGORIAS: "CATEGORIAS";
+            ORCAMENTO: "ORCAMENTO";
+            TESOURARIA: "TESOURARIA";
+        }>>;
+        porque: z.ZodArray<z.ZodString>;
     }, z.core.$strip>>;
 }, z.core.$strip>;
 type DashboardSummary = z.infer<typeof dashboardSummarySchema>;
@@ -3355,4 +3470,4 @@ declare const usageSummarySchema: z.ZodObject<{
 }, z.core.$strip>;
 type UsageSummary = z.infer<typeof usageSummarySchema>;
 
-export { ACTIVITY_SUBJECTS, ACTIVITY_TYPES, type AIAnswer, type AIConversation, type AIMessage, type AIPrivacyStatus, type AIProviderConfig, type AIProviderKind, type AIRecommendation, type AIResponseType, type AIRetentionPolicy, type AITask, type AIUsage, type AIUsageSummary, AI_PROVIDER_KINDS, AI_RESPONSE_TYPES, AI_RETENTION_POLICIES, AI_TASKS, AUDIT_ACTIONS, type Activity, type ActivitySubject, type ActivityType, type ApiError, type AskInput, type Assumption, type AuditAction, type AuthResponse, type BrandingConfig, type BreakdownItem, type Budget, CONNECTOR_CAPABILITIES, CUSTOMER_STATUSES, type Calculation, type Category, type ChangeItem, type CheckoutSession, type ColumnMapping, type ConfirmMappingInput, type ConnectionHealth, type ConnectorCapability, type CreateCheckoutInput, type CreateLeadInput, type CreateOpportunityInput, type Currency, type Customer, type CustomerStatus, DATA_CLASSES, DATA_QUALITY_ISSUE_TYPES, DATA_SOURCE_KINDS, DEFAULT_LOCALE, type DashboardSummary, type DataClass, type DataQualityIssue, type DataQualityIssueType, type DataQualitySummary, type DataSource, type DataSourceKind, type Dataset, type Delta, type DiscoveredEntity, type DiscoveredField, type DiscoveredSchema, EXPORT_FORMATS, type Evidence, type EvidenceTransaction, type ExportFormat, type ExportRequest, type ExportResult, FORECAST_SCENARIOS, type Forecast, type ForecastPoint, type ForecastScenario, type GenerateReportInput, IMPORT_STATES, IMPORT_TRIGGERS, INSIGHT_TYPES, type Id, type Import, type ImportFilter, type ImportMapping, type ImportProgress, type ImportState, type ImportTrigger, type Insight, type InsightFilter, type InsightType, type InsightsResponse, type InviteMemberInput, type IsoDate, type IsoDateTime, type KeyPoint, LEAD_STATUSES, LOCALES, type Lead, type LeadFilter, type LeadStatus, type LineageRef, type Locale, type LoginInput, METRIC_IDS, METRIC_UNITS, type Member, type Membership, type MetricId, type MetricNodeSpec, type MetricQuery, type MetricUnit, type MetricValue, type Money, OPPORTUNITY_STAGES, type Opportunity, type OpportunityStage, type Organization, type OrganizationSettings, PASSWORD_MIN_LENGTH, PAYMENT_PROVIDERS, PERIOD_GRANULARITIES, PERMISSIONS, PLAN_TIERS, type Paginated, type PaginationQuery, type Partner, type PaymentProviderKind, type Percentage, type Period, type PeriodGranularity, type PeriodRange, type Permission, type PipelineSummary, type Plan, type PlanLimits, type PlanTier, REPORT_SECTION_KINDS, ROLES, ROLE_PERMISSIONS, type Recommendation, type RefreshInput, type Report, type ReportMetadata, type ReportSection, type ReportSectionKind, type RequestPasswordResetInput, type ResetPasswordInput, type Role, SCENARIO_TYPES, SEVERITIES, SUBSCRIPTION_STATUSES, type ScenarioImpact, type ScenarioInput, type ScenarioResult, type ScenarioType, type SessionOrganization, type SessionUser, type Severity, type SignupInput, type Subscription, type SubscriptionStatus, type Supplier, type SyncCursor, TARGET_FIELDS, TRANSACTION_TYPES, type TargetField, type TimeSeriesPoint, type TokenPair, type Transaction, type TransactionFilter, type TransactionType, type UpdateLeadInput, type UpdateOrganizationSettingsInput, type UpsertAIProviderConfigInput, type UsageSummary, type VarianceContribution, type VarianceTree, type WhatChangedResponse, activitySchema, activitySubjectSchema, activityTypeSchema, aiAnswerSchema, aiConversationSchema, aiMessageSchema, aiPrivacyStatusSchema, aiProviderConfigSchema, aiProviderKindSchema, aiRecommendationSchema, aiResponseTypeSchema, aiRetentionPolicySchema, aiTaskSchema, aiUsageSchema, aiUsageSummarySchema, apiErrorSchema, askInputSchema, assumptionSchema, auditActionSchema, authResponseSchema, brandingConfigSchema, breakdownItemSchema, budgetSchema, calculationSchema, categorySchema, changeItemSchema, checkoutSessionSchema, columnMappingSchema, confirmMappingInputSchema, connectionHealthSchema, connectorCapabilitySchema, createCheckoutInputSchema, createLeadInputSchema, createOpportunityInputSchema, currencySchema, customerSchema, customerStatusSchema, dashboardSummarySchema, dataClassSchema, dataQualityIssueSchema, dataQualityIssueTypeSchema, dataQualitySummarySchema, dataSourceKindSchema, dataSourceSchema, datasetSchema, deltaSchema, discoveredEntitySchema, discoveredFieldSchema, discoveredSchemaSchema, emailSchema, evidenceSchema, evidenceTransactionSchema, exportFormatSchema, exportRequestSchema, exportResultSchema, forecastPointSchema, forecastScenarioSchema, forecastSchema, generateReportInputSchema, idSchema, importFilterSchema, importMappingSchema, importProgressSchema, importSchema, importStateSchema, importTriggerSchema, insightFilterSchema, insightSchema, insightTypeSchema, insightsResponseSchema, inviteMemberInputSchema, isoDateSchema, isoDateTimeSchema, keyPointSchema, leadFilterSchema, leadSchema, leadStatusSchema, lineageRefSchema, localeSchema, loginInputSchema, memberSchema, membershipSchema, metricIdSchema, metricNodeSpecSchema, metricQuerySchema, metricUnitSchema, metricValueSchema, moneySchema, opportunitySchema, opportunityStageSchema, organizationSchema, organizationSettingsSchema, paginatedSchema, paginationQuerySchema, partnerSchema, passwordSchema, paymentProviderSchema, percentageSchema, periodGranularitySchema, periodRangeSchema, periodSchema, permissionSchema, pipelineSummarySchema, planLimitsSchema, planSchema, planTierSchema, recommendationSchema, refreshInputSchema, reportMetadataSchema, reportSchema, reportSectionKindSchema, reportSectionSchema, requestPasswordResetInputSchema, resetPasswordInputSchema, roleSchema, scenarioImpactSchema, scenarioInputSchema, scenarioResultSchema, scenarioTypeSchema, sessionOrganizationSchema, sessionUserSchema, severitySchema, signupInputSchema, subscriptionSchema, subscriptionStatusSchema, supplierSchema, syncCursorSchema, targetFieldSchema, timeSeriesPointSchema, tokenPairSchema, transactionFilterSchema, transactionSchema, transactionTypeSchema, updateLeadInputSchema, updateOrganizationSettingsInputSchema, upsertAIProviderConfigInputSchema, usageSummarySchema, varianceContributionSchema, varianceTreeSchema, whatChangedResponseSchema };
+export { ACTIVITY_SUBJECTS, ACTIVITY_TYPES, type AIAnswer, type AIConversation, type AIMessage, type AIPrivacyStatus, type AIProviderConfig, type AIProviderKind, type AIRecommendation, type AIResponseType, type AIRetentionPolicy, type AITask, type AIUsage, type AIUsageSummary, AI_PROVIDER_KINDS, AI_RESPONSE_TYPES, AI_RETENTION_POLICIES, AI_TASKS, AUDIT_ACTIONS, type Activity, type ActivitySubject, type ActivityType, type ApiError, type AskInput, type Assumption, type AuditAction, type AuditEvent, type AuthResponse, type BrandingConfig, type BreakdownItem, type Budget, CONNECTOR_CAPABILITIES, CUSTOMER_STATUSES, type Calculation, type Category, type ChangeItem, type CheckoutSession, type ColumnMapping, type ConfirmMappingInput, type ConnectionHealth, type ConnectorCapability, type CreateCheckoutInput, type CreateLeadInput, type CreateOpportunityInput, type Currency, type Customer, type CustomerStatus, DATA_CLASSES, DATA_QUALITY_ISSUE_TYPES, DATA_SOURCE_KINDS, DEFAULT_LOCALE, type DashboardSummary, type DataClass, type DataQualityIssue, type DataQualityIssueType, type DataQualitySummary, type DataSource, type DataSourceKind, type Dataset, type Delta, type DiscoveredEntity, type DiscoveredField, type DiscoveredSchema, EXPORT_FORMATS, type Evidence, type EvidenceTransaction, type ExportFormat, type ExportRequest, type ExportResult, FORECAST_SCENARIOS, type Forecast, type ForecastPoint, type ForecastScenario, type GenerateReportInput, IMPORT_STATES, IMPORT_TRIGGERS, INSIGHT_TYPES, type Id, type Import, type ImportFilter, type ImportMapping, type ImportProgress, type ImportState, type ImportTrigger, type Insight, type InsightFilter, type InsightType, type InsightsResponse, type InviteMemberInput, type IsoDate, type IsoDateTime, type KeyPoint, LEAD_STATUSES, LOCALES, type Lead, type LeadFilter, type LeadStatus, type LineageRef, type Locale, type LoginInput, METRIC_IDS, METRIC_UNITS, type Member, type Membership, type MetricId, type MetricNodeSpec, type MetricQuery, type MetricUnit, type MetricValue, type Money, OPPORTUNITY_STAGES, OVERVIEW_SECTIONS, type Opportunity, type OpportunityStage, type Organization, type OrganizationSettings, type OverviewSection, type OverviewShape, PASSWORD_MIN_LENGTH, PAYMENT_PROVIDERS, PERIOD_GRANULARITIES, PERMISSIONS, PLAN_TIERS, type Paginated, type PaginationQuery, type Partner, type PaymentProviderKind, type Percentage, type Period, type PeriodGranularity, type PeriodRange, type Permission, type PipelineSummary, type Plan, type PlanLimits, type PlanTier, REPORT_SECTION_KINDS, ROLES, ROLE_PERMISSIONS, type Recommendation, type RefreshInput, type Report, type ReportMetadata, type ReportSection, type ReportSectionKind, type RequestPasswordResetInput, type ResetPasswordInput, type Role, SCENARIO_TYPES, SEVERITIES, SUBSCRIPTION_STATUSES, type ScenarioImpact, type ScenarioInput, type ScenarioResult, type ScenarioType, type SessionOrganization, type SessionUser, type Severity, type SignupInput, type Subscription, type SubscriptionStatus, type Supplier, type SyncCursor, TARGET_FIELDS, TRANSACTION_TYPES, type TargetField, type TimeSeriesPoint, type TokenPair, type Transaction, type TransactionFilter, type TransactionType, type UpdateLeadInput, type UpdateOrganizationSettingsInput, type UpsertAIProviderConfigInput, type UsageSummary, type VarianceContribution, type VarianceTree, type WhatChangedResponse, activitySchema, activitySubjectSchema, activityTypeSchema, aiAnswerSchema, aiConversationSchema, aiMessageSchema, aiPrivacyStatusSchema, aiProviderConfigSchema, aiProviderKindSchema, aiRecommendationSchema, aiResponseTypeSchema, aiRetentionPolicySchema, aiTaskSchema, aiUsageSchema, aiUsageSummarySchema, apiErrorSchema, askInputSchema, assumptionSchema, auditActionSchema, auditEventSchema, authResponseSchema, brandingConfigSchema, breakdownItemSchema, budgetSchema, calculationSchema, categorySchema, changeItemSchema, checkoutSessionSchema, columnMappingSchema, confirmMappingInputSchema, connectionHealthSchema, connectorCapabilitySchema, createCheckoutInputSchema, createLeadInputSchema, createOpportunityInputSchema, currencySchema, customerSchema, customerStatusSchema, dashboardSummarySchema, dataClassSchema, dataQualityIssueSchema, dataQualityIssueTypeSchema, dataQualitySummarySchema, dataSourceKindSchema, dataSourceSchema, datasetSchema, deltaSchema, discoveredEntitySchema, discoveredFieldSchema, discoveredSchemaSchema, emailSchema, evidenceSchema, evidenceTransactionSchema, exportFormatSchema, exportRequestSchema, exportResultSchema, forecastPointSchema, forecastScenarioSchema, forecastSchema, generateReportInputSchema, idSchema, importFilterSchema, importMappingSchema, importProgressSchema, importSchema, importStateSchema, importTriggerSchema, insightFilterSchema, insightSchema, insightTypeSchema, insightsResponseSchema, inviteMemberInputSchema, isoDateSchema, isoDateTimeSchema, keyPointSchema, leadFilterSchema, leadSchema, leadStatusSchema, lineageRefSchema, localeSchema, loginInputSchema, memberSchema, membershipSchema, metricIdSchema, metricNodeSpecSchema, metricQuerySchema, metricUnitSchema, metricValueSchema, moneySchema, opportunitySchema, opportunityStageSchema, organizationSchema, organizationSettingsSchema, overviewSectionSchema, overviewShapeSchema, paginatedSchema, paginationQuerySchema, partnerSchema, passwordSchema, paymentProviderSchema, percentageSchema, periodGranularitySchema, periodRangeSchema, periodSchema, permissionSchema, pipelineSummarySchema, planLimitsSchema, planSchema, planTierSchema, recommendationSchema, refreshInputSchema, reportMetadataSchema, reportSchema, reportSectionKindSchema, reportSectionSchema, requestPasswordResetInputSchema, resetPasswordInputSchema, roleSchema, scenarioImpactSchema, scenarioInputSchema, scenarioResultSchema, scenarioTypeSchema, sessionOrganizationSchema, sessionUserSchema, severitySchema, signupInputSchema, subscriptionSchema, subscriptionStatusSchema, supplierSchema, syncCursorSchema, targetFieldSchema, timeSeriesPointSchema, tokenPairSchema, transactionFilterSchema, transactionSchema, transactionTypeSchema, updateLeadInputSchema, updateOrganizationSettingsInputSchema, upsertAIProviderConfigInputSchema, usageSummarySchema, varianceContributionSchema, varianceTreeSchema, whatChangedResponseSchema };
