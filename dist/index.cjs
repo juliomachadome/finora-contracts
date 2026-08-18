@@ -271,7 +271,7 @@ var periodRangeSchema = zod.z.object({
   from: periodSchema,
   to: periodSchema
 }).refine((r) => r.from <= r.to, {
-  message: "from tem de ser anterior ou igual a to",
+  message: "from must be earlier than or equal to to",
   path: ["from"]
 });
 var auditEventSchema = zod.z.object({
@@ -546,6 +546,39 @@ var confirmMappingInputSchema = zod.z.object({
   /** Pseudonymize names when the sheet looks like payroll. */
   pseudonymizeNames: zod.z.boolean().default(false)
 });
+var previewRowSchema = zod.z.object({
+  /** The line in the original file, so the person can go and look at it. */
+  rowNumber: zod.z.number().int().positive(),
+  /** `YYYY-MM-DD`. Already normalized: it is the interpretation being checked. */
+  date: zod.z.string(),
+  description: zod.z.string(),
+  /**
+   * Integer cents, **as a string**.
+   *
+   * A `BigInt` does not survive `JSON.stringify`, and turning it into a `number`
+   * on the way out would put back exactly the floating point the engine spends
+   * its whole design avoiding. The string crosses the wire intact and the UI
+   * converts it once, at the formatting boundary.
+   *
+   * The pattern is not decoration: it is what makes a stray `"12.34"` fail here,
+   * at the parse, instead of arriving as a silent `12` after `Number()`.
+   */
+  amountCents: zod.z.string().regex(/^-?\d+$/),
+  currency: currencySchema,
+  /** The customer or the supplier, whichever the document type makes it. */
+  counterparty: zod.z.string().nullable(),
+  category: zod.z.string().nullable()
+});
+var importPreviewSchema = zod.z.object({
+  /** Only the first few. The count of what would go in is `rowsReady`. */
+  rows: zod.z.array(previewRowSchema),
+  rowsReady: zod.z.number().int().nonnegative(),
+  rowsSkipped: zod.z.number().int().nonnegative(),
+  /** Of the skipped ones, how many were skipped for being repeats. */
+  duplicates: zod.z.number().int().nonnegative(),
+  /** How the file was read, e.g. `DD/MM/YYYY` and `1.234,56`. */
+  formats: zod.z.object({ date: zod.z.string(), amount: zod.z.string() })
+});
 var dataQualityIssueSchema = zod.z.object({
   id: idSchema,
   importId: idSchema,
@@ -768,7 +801,7 @@ var createOpportunityInputSchema = zod.z.object({
   expectedCloseDate: isoDateSchema.nullable().optional(),
   ownerId: idSchema.nullable().optional()
 }).refine((o) => Boolean(o.customerId) || Boolean(o.leadId), {
-  message: "oportunidade tem de pertencer a um cliente ou a um lead",
+  message: "an opportunity must belong to a customer or to a lead",
   path: ["customerId"]
 });
 var leadFilterSchema = paginationQuerySchema.extend({
@@ -861,20 +894,20 @@ var metricQuerySchema = zod.z.object({
   metrics: zod.z.array(metricIdSchema).optional()
 });
 var OVERVIEW_SECTIONS = [
-  "METRICAS",
-  "O_QUE_MUDOU",
-  "ALERTAS",
-  "EVOLUCAO",
-  "CLIENTES",
-  "CATEGORIAS",
-  "ORCAMENTO",
-  "TESOURARIA"
+  "METRICS",
+  "WHAT_CHANGED",
+  "ALERTS",
+  "TRENDS",
+  "CUSTOMERS",
+  "CATEGORIES",
+  "BUDGET",
+  "TREASURY"
 ];
 var overviewSectionSchema = zod.z.enum(OVERVIEW_SECTIONS);
 var overviewShapeSchema = zod.z.object({
-  metricas: zod.z.array(metricIdSchema),
-  seccoes: zod.z.array(overviewSectionSchema),
-  porque: zod.z.array(zod.z.string())
+  metrics: zod.z.array(metricIdSchema),
+  sections: zod.z.array(overviewSectionSchema),
+  reasons: zod.z.array(zod.z.string())
 });
 var dashboardSummarySchema = zod.z.object({
   period: periodSchema,
@@ -882,7 +915,7 @@ var dashboardSummarySchema = zod.z.object({
   currency: currencySchema,
   datasetVersion: zod.z.number().int(),
   metrics: zod.z.array(metricValueSchema),
-  /** Optional so v0.4.0 stays valid: without it, the panel uses the fixed order. */
+  /** Optional so a response without a composed shape stays valid: the panel then uses the fixed order. */
   shape: overviewShapeSchema.optional()
 });
 var calculationSchema = zod.z.object({
@@ -981,7 +1014,7 @@ var changeItemSchema = zod.z.object({
   metricId: metricIdSchema,
   unit: zod.z.string(),
   /** The value in the period, so the UI does not request the summary again. */
-  actual: zod.z.number(),
+  current: zod.z.number(),
   changeAbsolute: zod.z.number(),
   /**
    * `null` for margins, and for whatever has no comparison base.
@@ -1381,6 +1414,7 @@ exports.generateReportInputSchema = generateReportInputSchema;
 exports.idSchema = idSchema;
 exports.importFilterSchema = importFilterSchema;
 exports.importMappingSchema = importMappingSchema;
+exports.importPreviewSchema = importPreviewSchema;
 exports.importProgressSchema = importProgressSchema;
 exports.importSchema = importSchema;
 exports.importStateSchema = importStateSchema;
@@ -1427,6 +1461,7 @@ exports.pipelineSummarySchema = pipelineSummarySchema;
 exports.planLimitsSchema = planLimitsSchema;
 exports.planSchema = planSchema;
 exports.planTierSchema = planTierSchema;
+exports.previewRowSchema = previewRowSchema;
 exports.recommendationSchema = recommendationSchema;
 exports.refreshInputSchema = refreshInputSchema;
 exports.reportMetadataSchema = reportMetadataSchema;

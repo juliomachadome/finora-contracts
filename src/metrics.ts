@@ -162,26 +162,30 @@ export type MetricQuery = z.infer<typeof metricQuerySchema>
  *
  * The composition is derived from the data, not generated: with no budget
  * uploaded there is no variance to show, and a customer worth 40% of the revenue
- * moves up to first. `porque` carries the reasons — it is what stops a panel
- * that changes shape from reading as instability.
+ * moves up to first. `reasons` carries the why — it is what stops a panel that
+ * changes shape from reading as instability.
+ *
+ * `TREASURY` rather than `CASH`, which would have been the literal translation:
+ * `CASH` is already a `MetricId`, and the composer pushes onto both arrays a few
+ * lines apart. One word meaning two things there is a typo the compiler accepts.
  */
 export const OVERVIEW_SECTIONS = [
-  'METRICAS',
-  'O_QUE_MUDOU',
-  'ALERTAS',
-  'EVOLUCAO',
-  'CLIENTES',
-  'CATEGORIAS',
-  'ORCAMENTO',
-  'TESOURARIA',
+  'METRICS',
+  'WHAT_CHANGED',
+  'ALERTS',
+  'TRENDS',
+  'CUSTOMERS',
+  'CATEGORIES',
+  'BUDGET',
+  'TREASURY',
 ] as const
 export const overviewSectionSchema = z.enum(OVERVIEW_SECTIONS)
 export type OverviewSection = z.infer<typeof overviewSectionSchema>
 
 export const overviewShapeSchema = z.object({
-  metricas: z.array(metricIdSchema),
-  seccoes: z.array(overviewSectionSchema),
-  porque: z.array(z.string()),
+  metrics: z.array(metricIdSchema),
+  sections: z.array(overviewSectionSchema),
+  reasons: z.array(z.string()),
 })
 export type OverviewShape = z.infer<typeof overviewShapeSchema>
 
@@ -192,7 +196,7 @@ export const dashboardSummarySchema = z.object({
   currency: currencySchema,
   datasetVersion: z.number().int(),
   metrics: z.array(metricValueSchema),
-  /** Optional so v0.4.0 stays valid: without it, the panel uses the fixed order. */
+  /** Optional so a response without a composed shape stays valid: the panel then uses the fixed order. */
   shape: overviewShapeSchema.optional(),
 })
 export type DashboardSummary = z.infer<typeof dashboardSummarySchema>

@@ -135,7 +135,7 @@ export const periodRangeSchema = z
     to: periodSchema,
   })
   .refine((r) => r.from <= r.to, {
-    message: 'from tem de ser anterior ou igual a to',
+    message: 'from must be earlier than or equal to to',
     path: ['from'],
   })
 export type PeriodRange = z.infer<typeof periodRangeSchema>

@@ -128,7 +128,7 @@ export const changeItemSchema = z.object({
   metricId: metricIdSchema,
   unit: z.string(),
   /** The value in the period, so the UI does not request the summary again. */
-  actual: z.number(),
+  current: z.number(),
   changeAbsolute: z.number(),
   /**
    * `null` for margins, and for whatever has no comparison base.

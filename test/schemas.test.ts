@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { varianceTreeSchema } from '../src/metrics.js'
+import {
+  dashboardSummarySchema,
+  OVERVIEW_SECTIONS,
+  overviewShapeSchema,
+  varianceTreeSchema,
+} from '../src/metrics.js'
 import { createOpportunityInputSchema } from '../src/commercial.js'
 import { aiAnswerSchema } from '../src/ai.js'
 import { LOCALES, DATA_CLASSES, AI_RETENTION_POLICIES } from '../src/enums.js'
@@ -42,6 +47,107 @@ describe('varianceTreeSchema', () => {
       ],
     }
     expect(varianceTreeSchema.parse(tree).children[0]?.children[0]?.label).toBe('Marketing')
+  })
+})
+
+/**
+ * The Overview's composition, which until now nobody had ever parsed.
+ *
+ * It is what makes the dashboard's shape follow the business — the panel drops
+ * the budget section when no budget was uploaded, and moves customers up when
+ * one of them is worth 40% of the revenue. A shape nothing validates is a panel
+ * that renders an unknown section name as an empty box, in front of a customer,
+ * with nothing in any log.
+ */
+describe('overviewShapeSchema', () => {
+  const shape = {
+    metrics: ['REVENUE', 'GROSS_MARGIN', 'EBITDA'],
+    sections: ['METRICS', 'WHAT_CHANGED', 'CUSTOMERS'],
+    reasons: ['One customer is worth 41% of the revenue.'],
+  }
+
+  it('accepts a composition derived from the data', () => {
+    const parsed = overviewShapeSchema.parse(shape)
+    expect(parsed.sections).toEqual(['METRICS', 'WHAT_CHANGED', 'CUSTOMERS'])
+  })
+
+  it('refuses a section the panel cannot render', () => {
+    // The failure without this is silent: an unknown name renders as nothing,
+    // and the Overview quietly loses a block.
+    expect(() =>
+      overviewShapeSchema.parse({ ...shape, sections: ['METRICS', 'FORECAST'] }),
+    ).toThrow()
+  })
+
+  it('refuses a metric the graph does not define', () => {
+    expect(() =>
+      overviewShapeSchema.parse({ ...shape, metrics: ['REVENUE', 'NET_MARGIN_TYPO'] }),
+    ).toThrow()
+  })
+
+  it('accepts an empty composition without inventing a default', () => {
+    // An organization with nothing imported has no shape to derive. Empty is the
+    // honest answer, and the panel falls back to the fixed order.
+    expect(overviewShapeSchema.parse({ metrics: [], sections: [], reasons: [] }).reasons).toEqual([])
+  })
+
+  it('carries the reasons, which is what stops a moving panel reading as instability', () => {
+    // §66: the sections change with the business. Without `reasons`, a customer
+    // whose dashboard rearranged itself has no way to know it was deliberate.
+    expect(overviewShapeSchema.parse(shape).reasons[0]).toContain('41%')
+  })
+
+  it('names every section the product knows how to draw', () => {
+    // Pins the list: adding a section to the enum without teaching the panel to
+    // draw it is the same silent empty box, arriving from the other direction.
+    expect([...OVERVIEW_SECTIONS]).toEqual([
+      'METRICS',
+      'WHAT_CHANGED',
+      'ALERTS',
+      'TRENDS',
+      'CUSTOMERS',
+      'CATEGORIES',
+      'BUDGET',
+      'TREASURY',
+    ])
+  })
+})
+
+describe('dashboardSummarySchema', () => {
+  const summary = {
+    period: '2026-07',
+    comparePeriod: '2026-06',
+    currency: 'EUR',
+    datasetVersion: 4,
+    metrics: [
+      {
+        metricId: 'GROSS_MARGIN',
+        period: '2026-07',
+        unit: 'PERCENT',
+        value: null,
+        currency: null,
+        delta: null,
+        datasetVersion: 4,
+      },
+    ],
+  }
+
+  it('keeps the shape optional, so an older backend stays valid', () => {
+    // The field arrived later than the rest. Required, it would have made every
+    // deployed backend invalid the moment the contract was bumped.
+    expect(dashboardSummarySchema.parse(summary).shape).toBeUndefined()
+  })
+
+  it('validates the shape when it is there', () => {
+    expect(() =>
+      dashboardSummarySchema.parse({ ...summary, shape: { metrics: [], sections: ['X'], reasons: [] } }),
+    ).toThrow()
+  })
+
+  it('lets a metric be uncalculable without turning it into zero', () => {
+    // A margin with no revenue has no basis to exist. "0.0%" in front of a CFO
+    // whose month was profitable is asserting a false fact about their company.
+    expect(dashboardSummarySchema.parse(summary).metrics[0]?.value).toBeNull()
   })
 })
 
@@ -248,7 +354,7 @@ describe('changeItemSchema', () => {
     const margin = changeItemSchema.parse({
       metricId: 'GROSS_MARGIN',
       unit: 'PERCENT',
-      actual: 58.5,
+      current: 58.5,
       changeAbsolute: -2.4,
       changePercent: null,
       changePoints: -2.4,

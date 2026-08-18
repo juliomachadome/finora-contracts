@@ -37,8 +37,17 @@ jobs:
 
       # dist has to exist: it is what a git dependency delivers to the two
       # consumers. A silently empty build would break both repos.
+      #
+      # All four, including `index.d.cts`. It was the one left out, and it is the
+      # one praestat-back needs: NestJS compiles to CommonJS, so `require`
+      # resolves the types through `.d.cts` and not through `.d.ts`. Missing, the
+      # whole package types as `any` and every schema mismatch this repo exists
+      # to catch stops being caught.
       - name: Check the build produced artefacts
-        run: test -f dist/index.js && test -f dist/index.cjs && test -f dist/index.d.ts
+        run: |
+          for artefact in dist/index.js dist/index.cjs dist/index.d.ts dist/index.d.cts; do
+            test -f "$artefact" || { echo "::error::$artefact is missing from the build."; exit 1; }
+          done
 
       # `dist/` is versioned because pnpm 11 blocks install scripts of git
       # dependencies. That creates a new risk: someone changes a schema, forgets to
@@ -47,9 +56,16 @@ jobs:
       #
       # This step makes forgetting impossible: it rebuilds and fails if the result
       # differs from what is in the repository.
+      #
+      # Staged first, because `git diff` alone only compares **tracked** files.
+      # A build that starts emitting a new artefact — a second entry point, a
+      # `.d.mts`, a chunk — leaves it untracked, invisible to the diff, and the
+      # gate passes on a `dist/` that the consumers will not receive. `git add
+      # -A` makes new, changed and deleted files all show up the same way.
       - name: Check dist is in sync with src
         run: |
-          if ! git diff --exit-code --stat -- dist; then
+          git add --all -- dist
+          if ! git diff --cached --exit-code --stat -- dist; then
             echo "::error::dist/ is out of date. Run 'pnpm build' and commit the result."
             exit 1
           fi

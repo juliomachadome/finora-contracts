@@ -142,7 +142,7 @@ export const createOpportunityInputSchema = z
     ownerId: idSchema.nullable().optional(),
   })
   .refine((o) => Boolean(o.customerId) || Boolean(o.leadId), {
-    message: 'oportunidade tem de pertencer a um cliente ou a um lead',
+    message: 'an opportunity must belong to a customer or to a lead',
     path: ['customerId'],
   })
 export type CreateOpportunityInput = z.infer<typeof createOpportunityInputSchema>
