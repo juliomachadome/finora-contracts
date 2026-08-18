@@ -1,25 +1,25 @@
 import { z } from 'zod'
 
 /**
- * Primitivas partilhadas por toda a API.
+ * Primitives shared across the whole API.
  */
 
 // ---------------------------------------------------------------------------
-// Identificadores
+// Identifiers
 // ---------------------------------------------------------------------------
 
 export const idSchema = z.string().uuid()
 export type Id = z.infer<typeof idSchema>
 
-/** ISO-8601. Serializado como string porque JSON não tem tipo data. */
+/** ISO-8601. Serialized as a string because JSON has no date type. */
 export const isoDateTimeSchema = z.iso.datetime()
 export type IsoDateTime = z.infer<typeof isoDateTimeSchema>
 
-/** Dia sem hora, `YYYY-MM-DD`. Transacções têm data, não instante. */
+/** Day without a time, `YYYY-MM-DD`. Transactions have a date, not an instant. */
 export const isoDateSchema = z.iso.date()
 export type IsoDate = z.infer<typeof isoDateSchema>
 
-/** Período mensal `YYYY-MM`. Unidade natural de reporte financeiro. */
+/** Monthly period `YYYY-MM`. The natural unit of financial reporting. */
 export const periodSchema = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'período tem de ser YYYY-MM')
 export type Period = z.infer<typeof periodSchema>
 
@@ -28,48 +28,48 @@ export const currencySchema = z.string().length(3).toUpperCase()
 export type Currency = z.infer<typeof currencySchema>
 
 // ---------------------------------------------------------------------------
-// Dinheiro
+// Money
 // ---------------------------------------------------------------------------
 
 /**
- * Valor monetário em **cêntimos**, sempre inteiro.
+ * Monetary value in **cents**, always an integer.
  *
- * Vírgula flutuante não representa 0,1 exactamente, e uma soma de dez mil linhas
- * acumula erro que aparece como cêntimos a faltar num relatório assinado por um
- * CFO. Num produto cuja promessa é "podes conferir tudo", isso é fatal.
+ * Floating point does not represent 0.1 exactly, and a sum of ten thousand rows
+ * accumulates an error that shows up as missing cents in a report signed by a
+ * CFO. In a product whose promise is "you can check everything", that is fatal.
  *
- * Regra: cêntimos como inteiro em todo o transporte e armazenamento; a
- * formatação para humano acontece só na fronteira de apresentação, com `Intl`.
+ * Rule: cents as an integer throughout transport and storage; formatting for
+ * humans happens only at the presentation boundary, with `Intl`.
  */
 export const moneySchema = z.object({
-  /** Inteiro em cêntimos. 1234 = 12,34. Negativo é permitido (estornos). */
+  /** Integer in cents. 1234 = 12.34. Negative is allowed (refunds). */
   amountCents: z.number().int(),
   currency: currencySchema,
 })
 export type Money = z.infer<typeof moneySchema>
 
 /**
- * Percentagem como número, não como fracção: 12.4 significa 12,4%.
+ * Percentage as a number, not as a fraction: 12.4 means 12.4%.
  *
- * A alternativa (0.124) engana à leitura e produz o clássico erro de multiplicar
- * por 100 duas vezes.
+ * The alternative (0.124) misleads on reading and produces the classic mistake
+ * of multiplying by 100 twice.
  */
 export const percentageSchema = z.number()
 export type Percentage = z.infer<typeof percentageSchema>
 
 /**
- * Variação entre dois períodos.
+ * Variation between two periods.
  *
- * `changePercent` é nulo quando o período anterior é zero — divisão por zero não
- * é "crescimento infinito", é ausência de base de comparação, e a UI tem de
- * mostrar isso em vez de um número inventado.
+ * `changePercent` is null when the previous period is zero — division by zero is
+ * not "infinite growth", it is the absence of a comparison base, and the UI has
+ * to show that instead of an invented number.
  */
 export const deltaSchema = z.object({
   current: z.number(),
   previous: z.number(),
   changeAbsolute: z.number(),
   changePercent: z.number().nullable(),
-  /** Para margens, em pontos percentuais. 2.8 = +2,8pp. */
+  /** For margins, in percentage points. 2.8 = +2.8pp. */
   changePoints: z.number().nullable().optional(),
 })
 export type Delta = z.infer<typeof deltaSchema>
@@ -79,30 +79,31 @@ export type Delta = z.infer<typeof deltaSchema>
 // ---------------------------------------------------------------------------
 
 /**
- * Erro da API, formato único.
+ * API error, single format.
  *
- * `message` é para humano e vem já traduzido no locale do pedido. `code` é para
- * a máquina e nunca muda. `details` transporta erros de campo em formulário.
+ * `message` is for a human and comes already translated in the locale of the
+ * request. `code` is for the machine and never changes. `details` carries field
+ * errors in a form.
  *
- * Nunca inclui stack trace, query, nem valor de campo sensível — o corpo do erro
- * é o sítio onde mais segredo escapa por descuido.
+ * Never includes a stack trace, a query, nor a sensitive field value — the error
+ * body is the place where most secrets escape by carelessness.
  */
 export const apiErrorSchema = z.object({
   code: z.string(),
   message: z.string(),
   details: z.record(z.string(), z.array(z.string())).optional(),
-  /** Para o utilizador citar ao pedir apoio, e para cruzar com o log. */
+  /** For the user to quote when asking for support, and to cross with the log. */
   requestId: z.string().optional(),
 })
 export type ApiError = z.infer<typeof apiErrorSchema>
 
 /**
- * Paginação por cursor, não por offset.
+ * Cursor pagination, not offset.
  *
- * `OFFSET 20000` obriga o Postgres a ler vinte mil linhas para as deitar fora, e
- * degrada à medida que o cliente acumula histórico — exactamente ao contrário do
- * que se quer. O cursor lê sempre a mesma quantidade, e não salta linhas quando
- * chegam registos novos a meio da navegação.
+ * `OFFSET 20000` forces Postgres to read twenty thousand rows in order to throw
+ * them away, and degrades as the client accumulates history — exactly the
+ * opposite of what is wanted. The cursor always reads the same amount, and does
+ * not skip rows when new records arrive mid-navigation.
  */
 export const paginationQuerySchema = z.object({
   cursor: z.string().optional(),
@@ -114,7 +115,7 @@ export const paginatedSchema = <T extends z.ZodTypeAny>(item: T) =>
   z.object({
     items: z.array(item),
     nextCursor: z.string().nullable(),
-    /** Só quando é barato de obter. Ausente não significa zero. */
+    /** Only when it is cheap to obtain. Absent does not mean zero. */
     totalCount: z.number().int().optional(),
   })
 
@@ -125,7 +126,7 @@ export type Paginated<T> = {
 }
 
 // ---------------------------------------------------------------------------
-// Filtros de período
+// Period filters
 // ---------------------------------------------------------------------------
 
 export const periodRangeSchema = z

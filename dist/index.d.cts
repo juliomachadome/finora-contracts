@@ -1,11 +1,12 @@
 import { z } from 'zod';
 
 /**
- * Enums partilhados entre a API e o frontend.
+ * Enums shared between the API and the frontend.
  *
- * Cada um existe como array `const` (para iterar na UI e alimentar o Prisma) e
- * como schema Zod (para validar na fronteira). O tipo sai do Zod, nunca escrito
- * à mão — assim não há hipótese de o tipo e a validação divergirem.
+ * Each one exists as a `const` array (to iterate in the UI and feed Prisma) and
+ * as a Zod schema (to validate at the boundary). The type comes out of Zod,
+ * never written by hand — that way there is no chance of the type and the
+ * validation diverging.
  */
 declare const ROLES: readonly ["OWNER", "ADMIN", "CFO", "FINANCE_MANAGER", "ANALYST", "VIEWER", "AUDITOR"];
 declare const roleSchema: z.ZodEnum<{
@@ -35,12 +36,12 @@ declare const permissionSchema: z.ZodEnum<{
 }>;
 type Permission = z.infer<typeof permissionSchema>;
 /**
- * Permissões por papel.
+ * Permissions per role.
  *
- * Vive nos contratos, e não só no backend, porque o frontend precisa de esconder
- * o que o utilizador não pode fazer. O backend continua a ser quem decide: isto
- * é conveniência de UI, nunca autorização (§71 — autorização é sempre no
- * servidor).
+ * Lives in the contracts, and not only in the backend, because the frontend
+ * needs to hide what the user cannot do. The backend is still the one that
+ * decides: this is UI convenience, never authorization (§71 — authorization is
+ * always on the server).
  */
 declare const ROLE_PERMISSIONS: Readonly<Record<Role, readonly Permission[]>>;
 declare const DATA_SOURCE_KINDS: readonly ["FILE_UPLOAD", "XERO", "QUICKBOOKS", "SAGE", "PRIMAVERA", "PHC", "OMIE", "CONTA_AZUL", "SAP", "ORACLE", "NETSUITE", "STRIPE", "SHOPIFY", "HUBSPOT", "SALESFORCE", "OPEN_BANKING"];
@@ -144,11 +145,11 @@ declare const aiProviderKindSchema: z.ZodEnum<{
 }>;
 type AIProviderKind = z.infer<typeof aiProviderKindSchema>;
 /**
- * Tarefas com routing independente (§16).
+ * Tasks with independent routing (§16).
  *
- * Cada uma resolve o seu provider e modelo, para dar análise rápida num modelo
- * barato e raciocínio pesado num caro sem trocar de fornecedor à mão. Trocar
- * silenciosamente para um provider não autorizado é proibido pelo §16.
+ * Each one resolves its own provider and model, so as to give fast analysis on a
+ * cheap model and heavy reasoning on an expensive one without switching supplier
+ * by hand. Silently switching to an unauthorized provider is forbidden by §16.
  */
 declare const AI_TASKS: readonly ["FAST_ANALYSIS", "COMPLEX_REASONING", "DOCUMENT_EXTRACTION", "EMBEDDINGS", "EXECUTIVE_SUMMARY"];
 declare const aiTaskSchema: z.ZodEnum<{
@@ -160,10 +161,10 @@ declare const aiTaskSchema: z.ZodEnum<{
 }>;
 type AITask = z.infer<typeof aiTaskSchema>;
 /**
- * Tipo de afirmação numa resposta de IA (§20).
+ * Type of statement in an AI answer (§20).
  *
- * Separar facto de inferência não é cosmético: é o que permite ao utilizador
- * saber o que pode levar a uma reunião e o que tem de confirmar primeiro.
+ * Separating fact from inference is not cosmetic: it is what lets the user know
+ * what can be taken to a meeting and what has to be confirmed first.
  */
 declare const AI_RESPONSE_TYPES: readonly ["FACT", "CALCULATION", "INFERENCE", "RECOMMENDATION"];
 declare const aiResponseTypeSchema: z.ZodEnum<{
@@ -174,11 +175,11 @@ declare const aiResponseTypeSchema: z.ZodEnum<{
 }>;
 type AIResponseType = z.infer<typeof aiResponseTypeSchema>;
 /**
- * Política de retenção do endpoint de IA configurado.
+ * Retention policy of the configured AI endpoint.
  *
- * Existe porque alguns providers treinam com dados da API consoante o tier, e
- * uma chave mal escolhida põe dados financeiros de cliente num corpus de treino
- * — o que não se desfaz. A UI sinaliza antes do uso, não depois.
+ * Exists because some providers train on API data depending on the tier, and a
+ * badly chosen key puts a client's financial data into a training corpus — which
+ * cannot be undone. The UI flags it before use, not after.
  */
 declare const AI_RETENTION_POLICIES: readonly ["ZERO_RETENTION", "RETAINED_NO_TRAINING", "TRAINS_ON_DATA", "UNKNOWN"];
 declare const aiRetentionPolicySchema: z.ZodEnum<{
@@ -271,11 +272,11 @@ declare const paymentProviderSchema: z.ZodEnum<{
 }>;
 type PaymentProviderKind = z.infer<typeof paymentProviderSchema>;
 /**
- * Português são dois locales, não um.
+ * Portuguese is two locales, not one.
  *
- * O vocabulário financeiro diverge a sério entre Portugal e Brasil —
- * facturação/faturamento, IVA/ICMS, tesouraria/caixa — e servir os dois
- * mercados com uma tradução só soa a estrangeiro nos dois lados.
+ * The financial vocabulary genuinely diverges between Portugal and Brazil —
+ * facturação/faturamento, IVA/ICMS, tesouraria/caixa — and serving both markets
+ * with a single translation sounds foreign on both sides.
  */
 declare const LOCALES: readonly ["pt-PT", "pt-BR", "es", "en"];
 declare const localeSchema: z.ZodEnum<{
@@ -287,16 +288,16 @@ declare const localeSchema: z.ZodEnum<{
 type Locale = z.infer<typeof localeSchema>;
 declare const DEFAULT_LOCALE: Locale;
 /**
- * Sensibilidade do dado, aplicada em código e não só em documento
+ * Sensitivity of the data, enforced in code and not only in a document
  * (`docs/SEGURANCA_E_PRIVACIDADE.md`).
  *
- * Alimenta a lista de redacção do logger, a decisão de cifrar em repouso e o
- * que pode chegar a um provider de IA.
+ * Feeds the logger's redaction list, the decision to encrypt at rest and what
+ * may reach an AI provider.
  *
- *   S3  chaves e credenciais       nunca em log, nunca ao frontend, nunca à IA
- *   S2  ficheiros, linhas, payroll cifrado, redigido, à IA só por ferramenta
- *   S1  métricas e nomes           escopo de tenant, valores fora do log
- *   S0  contagens e latências      pode alimentar telemetria
+ *   S3  keys and credentials       never in a log, never to the frontend, never to the AI
+ *   S2  files, rows, payroll       encrypted, redacted, to the AI only via a tool
+ *   S1  metrics and names          tenant-scoped, values kept out of the log
+ *   S0  counts and latencies       may feed telemetry
  */
 declare const DATA_CLASSES: readonly ["S0", "S1", "S2", "S3"];
 declare const dataClassSchema: z.ZodEnum<{
@@ -327,31 +328,31 @@ declare const auditActionSchema: z.ZodEnum<{
 type AuditAction = z.infer<typeof auditActionSchema>;
 
 /**
- * Primitivas partilhadas por toda a API.
+ * Primitives shared across the whole API.
  */
 declare const idSchema: z.ZodString;
 type Id = z.infer<typeof idSchema>;
-/** ISO-8601. Serializado como string porque JSON não tem tipo data. */
+/** ISO-8601. Serialized as a string because JSON has no date type. */
 declare const isoDateTimeSchema: z.ZodISODateTime;
 type IsoDateTime = z.infer<typeof isoDateTimeSchema>;
-/** Dia sem hora, `YYYY-MM-DD`. Transacções têm data, não instante. */
+/** Day without a time, `YYYY-MM-DD`. Transactions have a date, not an instant. */
 declare const isoDateSchema: z.ZodISODate;
 type IsoDate = z.infer<typeof isoDateSchema>;
-/** Período mensal `YYYY-MM`. Unidade natural de reporte financeiro. */
+/** Monthly period `YYYY-MM`. The natural unit of financial reporting. */
 declare const periodSchema: z.ZodString;
 type Period = z.infer<typeof periodSchema>;
 /** ISO-4217. */
 declare const currencySchema: z.ZodString;
 type Currency = z.infer<typeof currencySchema>;
 /**
- * Valor monetário em **cêntimos**, sempre inteiro.
+ * Monetary value in **cents**, always an integer.
  *
- * Vírgula flutuante não representa 0,1 exactamente, e uma soma de dez mil linhas
- * acumula erro que aparece como cêntimos a faltar num relatório assinado por um
- * CFO. Num produto cuja promessa é "podes conferir tudo", isso é fatal.
+ * Floating point does not represent 0.1 exactly, and a sum of ten thousand rows
+ * accumulates an error that shows up as missing cents in a report signed by a
+ * CFO. In a product whose promise is "you can check everything", that is fatal.
  *
- * Regra: cêntimos como inteiro em todo o transporte e armazenamento; a
- * formatação para humano acontece só na fronteira de apresentação, com `Intl`.
+ * Rule: cents as an integer throughout transport and storage; formatting for
+ * humans happens only at the presentation boundary, with `Intl`.
  */
 declare const moneySchema: z.ZodObject<{
     amountCents: z.ZodNumber;
@@ -359,19 +360,19 @@ declare const moneySchema: z.ZodObject<{
 }, z.core.$strip>;
 type Money = z.infer<typeof moneySchema>;
 /**
- * Percentagem como número, não como fracção: 12.4 significa 12,4%.
+ * Percentage as a number, not as a fraction: 12.4 means 12.4%.
  *
- * A alternativa (0.124) engana à leitura e produz o clássico erro de multiplicar
- * por 100 duas vezes.
+ * The alternative (0.124) misleads on reading and produces the classic mistake
+ * of multiplying by 100 twice.
  */
 declare const percentageSchema: z.ZodNumber;
 type Percentage = z.infer<typeof percentageSchema>;
 /**
- * Variação entre dois períodos.
+ * Variation between two periods.
  *
- * `changePercent` é nulo quando o período anterior é zero — divisão por zero não
- * é "crescimento infinito", é ausência de base de comparação, e a UI tem de
- * mostrar isso em vez de um número inventado.
+ * `changePercent` is null when the previous period is zero — division by zero is
+ * not "infinite growth", it is the absence of a comparison base, and the UI has
+ * to show that instead of an invented number.
  */
 declare const deltaSchema: z.ZodObject<{
     current: z.ZodNumber;
@@ -382,13 +383,14 @@ declare const deltaSchema: z.ZodObject<{
 }, z.core.$strip>;
 type Delta = z.infer<typeof deltaSchema>;
 /**
- * Erro da API, formato único.
+ * API error, single format.
  *
- * `message` é para humano e vem já traduzido no locale do pedido. `code` é para
- * a máquina e nunca muda. `details` transporta erros de campo em formulário.
+ * `message` is for a human and comes already translated in the locale of the
+ * request. `code` is for the machine and never changes. `details` carries field
+ * errors in a form.
  *
- * Nunca inclui stack trace, query, nem valor de campo sensível — o corpo do erro
- * é o sítio onde mais segredo escapa por descuido.
+ * Never includes a stack trace, a query, nor a sensitive field value — the error
+ * body is the place where most secrets escape by carelessness.
  */
 declare const apiErrorSchema: z.ZodObject<{
     code: z.ZodString;
@@ -398,12 +400,12 @@ declare const apiErrorSchema: z.ZodObject<{
 }, z.core.$strip>;
 type ApiError = z.infer<typeof apiErrorSchema>;
 /**
- * Paginação por cursor, não por offset.
+ * Cursor pagination, not offset.
  *
- * `OFFSET 20000` obriga o Postgres a ler vinte mil linhas para as deitar fora, e
- * degrada à medida que o cliente acumula histórico — exactamente ao contrário do
- * que se quer. O cursor lê sempre a mesma quantidade, e não salta linhas quando
- * chegam registos novos a meio da navegação.
+ * `OFFSET 20000` forces Postgres to read twenty thousand rows in order to throw
+ * them away, and degrades as the client accumulates history — exactly the
+ * opposite of what is wanted. The cursor always reads the same amount, and does
+ * not skip rows when new records arrive mid-navigation.
  */
 declare const paginationQuerySchema: z.ZodObject<{
     cursor: z.ZodOptional<z.ZodString>;
@@ -427,15 +429,15 @@ declare const periodRangeSchema: z.ZodObject<{
 type PeriodRange = z.infer<typeof periodRangeSchema>;
 
 /**
- * O registo de auditoria (§77).
+ * The audit log (§77).
  *
- * Append-only do lado do servidor: este contrato só descreve leitura, e é de
- * propósito que não existe schema de escrita nem de alteração — um registo que
- * se pode editar não é prova, e é como prova que ele existe.
+ * Append-only on the server side: this contract describes only reading, and it
+ * is on purpose that there is no write or update schema — a record that can be
+ * edited is not proof, and it is as proof that it exists.
  *
- * O `metadata` nunca transporta valores sensíveis: guarda o suficiente para
- * reconstruir o quê, quem e quando. Um registo que precise de ser tratado como
- * confidencial não se pode entregar a um auditor, o que anula a razão de existir.
+ * `metadata` never carries sensitive values: it keeps enough to reconstruct
+ * what, who and when. A record that has to be treated as confidential cannot be
+ * handed to an auditor, which cancels its reason to exist.
  */
 declare const auditEventSchema: z.ZodObject<{
     id: z.ZodString;
@@ -451,19 +453,19 @@ declare const auditEventSchema: z.ZodObject<{
 type AuditEvent = z.infer<typeof auditEventSchema>;
 
 /**
- * Autenticação — JWT próprio, sem dependência de fornecedor.
+ * Authentication — our own JWT, with no supplier dependency.
  *
- * O §7.4 exige modo on-premise e o §113 proíbe o domínio conhecer Supabase.
- * Autenticação delegada a um SaaS quebraria os dois no ponto mais difícil de
- * mudar depois, que é a identidade.
+ * §7.4 requires an on-premise mode and §113 forbids the domain from knowing
+ * about Supabase. Authentication delegated to a SaaS would break both at the
+ * point that is hardest to change later, which is identity.
  */
 /**
- * Política de password.
+ * Password policy.
  *
- * Comprimento mínimo a sério em vez do teatro de "uma maiúscula e um símbolo":
- * as regras de composição empurram para `Password1!` e o NIST desaconselha-as há
- * anos. O que protege é comprimento e não ser uma password conhecida — a
- * verificação contra listas de fugas acontece no servidor, onde há como consultar.
+ * A serious minimum length instead of the "one capital and one symbol" theatre:
+ * composition rules push towards `Password1!` and NIST has advised against them
+ * for years. What protects is length and not being a known password — the check
+ * against breach lists happens on the server, where there is a way to look it up.
  */
 declare const PASSWORD_MIN_LENGTH = 12;
 declare const passwordSchema: z.ZodString;
@@ -501,11 +503,12 @@ declare const resetPasswordInputSchema: z.ZodObject<{
 }, z.core.$strip>;
 type ResetPasswordInput = z.infer<typeof resetPasswordInputSchema>;
 /**
- * Par de tokens.
+ * Token pair.
  *
- * O refresh é rotativo: cada uso emite um novo e invalida o anterior. Se um
- * token já usado reaparecer, é sinal de que foi roubado — nesse caso cai toda a
- * família de tokens daquela sessão, não só o repetido.
+ * The refresh is rotating: each use issues a new one and invalidates the
+ * previous. If an already used token reappears, it is a sign that it was stolen
+ * — in that case the whole token family of that session falls, not just the
+ * repeated one.
  */
 declare const tokenPairSchema: z.ZodObject<{
     accessToken: z.ZodString;
@@ -544,10 +547,10 @@ declare const sessionOrganizationSchema: z.ZodObject<{
 }, z.core.$strip>;
 type SessionOrganization = z.infer<typeof sessionOrganizationSchema>;
 /**
- * Utilizador da sessão.
+ * Session user.
  *
- * Nunca transporta hash de password, tokens nem qualquer campo S3 — este objecto
- * vai para o frontend e para o estado do cliente.
+ * Never carries a password hash, tokens nor any S3 field — this object goes to
+ * the frontend and into the client state.
  */
 declare const sessionUserSchema: z.ZodObject<{
     id: z.ZodString;
@@ -642,19 +645,19 @@ declare const authResponseSchema: z.ZodObject<{
 type AuthResponse = z.infer<typeof authResponseSchema>;
 
 /**
- * Organizações, membros e hierarquia de parceiros.
+ * Organizations, members and partner hierarchy.
  *
- * Estrutura (§69):
+ * Structure (§69):
  *
- *   Plataforma
- *    ├── Parceiro (firma de contabilidade)
- *    │    ├── Organização
- *    │    └── Organização
- *    └── Organização directa
+ *   Platform
+ *    ├── Partner (accounting firm)
+ *    │    ├── Organization
+ *    │    └── Organization
+ *    └── Direct organization
  *
- * O nível de parceiro existe no modelo desde o M0 mesmo sem UI: é o canal de
- * distribuição mais provável, e enxertar um nível de tenant depois obriga a
- * migrar todas as chaves estrangeiras da base.
+ * The partner level exists in the model since M0 even without a UI: it is the
+ * most likely distribution channel, and grafting on a tenant level later forces
+ * migrating every foreign key in the database.
  */
 declare const organizationSchema: z.ZodObject<{
     id: z.ZodString;
@@ -715,11 +718,11 @@ declare const partnerSchema: z.ZodObject<{
 }, z.core.$strip>;
 type Partner = z.infer<typeof partnerSchema>;
 /**
- * Marca personalizável (§8, §101).
+ * Customizable brand (§8, §101).
  *
- * É a mesma peça que suporta a mudança de nome do produto: o `brand.ts` do
- * frontend define o padrão e isto sobrepõe-o por organização. Construir para o
- * rename constrói o white-label.
+ * It is the same piece that supports the product's name change: the frontend's
+ * `brand.ts` defines the default and this overrides it per organization.
+ * Building for the rename builds the white-label.
  */
 declare const brandingConfigSchema: z.ZodObject<{
     productName: z.ZodNullable<z.ZodString>;
@@ -730,12 +733,12 @@ declare const brandingConfigSchema: z.ZodObject<{
 }, z.core.$strip>;
 type BrandingConfig = z.infer<typeof brandingConfigSchema>;
 /**
- * Definições de organização.
+ * Organization settings.
  *
- * `dataRetentionMonths` e `aiDataProcessingConsent` não são preferências de
- * conforto: são o cumprimento do §76 e a base legal para enviar seja o que for a
- * um provider de IA externo. Sem consentimento explícito, a organização só pode
- * usar provider local.
+ * `dataRetentionMonths` and `aiDataProcessingConsent` are not comfort
+ * preferences: they are compliance with §76 and the legal basis for sending
+ * anything at all to an external AI provider. Without explicit consent, the
+ * organization can only use a local provider.
  */
 declare const organizationSettingsSchema: z.ZodObject<{
     baseCurrency: z.ZodString;
@@ -796,18 +799,18 @@ declare const inviteMemberInputSchema: z.ZodObject<{
 type InviteMemberInput = z.infer<typeof inviteMemberInputSchema>;
 
 /**
- * Fontes de dados (§98).
+ * Data sources (§98).
  *
- * A regra que decide se ligar um Xero daqui a seis meses é *um adapter* ou *uma
- * reescrita*: **nenhuma fonte fala directamente com a normalização**. Todas
- * terminam no mesmo `RawBatch` e entram no pipeline idêntico.
+ * The rule that decides whether plugging in a Xero six months from now is *an
+ * adapter* or *a rewrite*: **no source talks directly to normalization**. They
+ * all end in the same `RawBatch` and enter the identical pipeline.
  *
  *   FileUpload ─┐
- *   Xero ───────┼─→ RawBatch ─→ Mapping ─→ Normalização ─→ Validação ─→ Dedup
+ *   Xero ───────┼─→ RawBatch ─→ Mapping ─→ Normalization ─→ Validation ─→ Dedup
  *   OpenBanking ┘
  *
- * No M0 só existe o conector de ficheiro. Os outros estão no enum sem
- * implementação (§107) — é o que garante que cabem sem migração.
+ * In M0 only the file connector exists. The others are in the enum without an
+ * implementation (§107) — that is what guarantees they fit without a migration.
  */
 declare const dataSourceSchema: z.ZodObject<{
     id: z.ZodString;
@@ -845,10 +848,10 @@ declare const dataSourceSchema: z.ZodObject<{
 }, z.core.$strip>;
 type DataSource = z.infer<typeof dataSourceSchema>;
 /**
- * Cursor de sincronização incremental.
+ * Incremental synchronization cursor.
  *
- * Existe no M0 sem ninguém o usar porque acrescentá-lo depois obriga a
- * reprocessar histórico para descobrir onde se ficou.
+ * Exists in M0 without anyone using it because adding it later forces
+ * reprocessing history to find out where things stopped.
  */
 declare const syncCursorSchema: z.ZodObject<{
     value: z.ZodString;
@@ -856,10 +859,10 @@ declare const syncCursorSchema: z.ZodObject<{
 }, z.core.$strip>;
 type SyncCursor = z.infer<typeof syncCursorSchema>;
 /**
- * Estrutura descoberta na origem.
+ * Structure discovered at the source.
  *
- * Um ficheiro devolve folhas e colunas; uma API devolve entidades e campos. A
- * mesma forma nos dois casos é o que permite à UI de mapeamento (§27) ser uma só.
+ * A file returns sheets and columns; an API returns entities and fields. The
+ * same shape in both cases is what lets the mapping UI (§27) be a single one.
  */
 declare const discoveredFieldSchema: z.ZodObject<{
     name: z.ZodString;
@@ -922,14 +925,14 @@ declare const connectionHealthSchema: z.ZodObject<{
 }, z.core.$strip>;
 type ConnectionHealth = z.infer<typeof connectionHealthSchema>;
 /**
- * Configuração de provider de IA por organização (§12 BYOK).
+ * AI provider configuration per organization (§12 BYOK).
  *
- * A chave nunca é devolvida — só a máscara (`sk-…4f2a`), que chega para o
- * utilizador reconhecer qual configurou.
+ * The key is never returned — only the mask (`sk-…4f2a`), which is enough for
+ * the user to recognize which one they configured.
  *
- * `retentionPolicy` existe porque alguns providers treinam com dados da API
- * consoante o tier, e uma chave mal escolhida põe dados financeiros de cliente
- * num corpus de treino, o que não se desfaz. A UI sinaliza antes do uso.
+ * `retentionPolicy` exists because some providers train on API data depending on
+ * the tier, and a badly chosen key puts a client's financial data into a
+ * training corpus, which cannot be undone. The UI flags it before use.
  */
 declare const aiProviderConfigSchema: z.ZodObject<{
     id: z.ZodString;
@@ -966,13 +969,13 @@ declare const upsertAIProviderConfigInputSchema: z.ZodObject<{
 type UpsertAIProviderConfigInput = z.infer<typeof upsertAIProviderConfigInputSchema>;
 
 /**
- * Ingestão — do ficheiro à transacção normalizada.
+ * Ingestion — from the file to the normalized transaction.
  *
- *   Upload → validação → armazenamento → parsing → detecção de folha e coluna
- *   → mapeamento → normalização → validação → deduplicação → persistência
+ *   Upload → validation → storage → parsing → sheet and column detection
+ *   → mapping → normalization → validation → deduplication → persistence
  *
- * O pipeline é o mesmo venha o dado de um Excel ou de uma API (§98). O que muda
- * é só o conector que produz o lote.
+ * The pipeline is the same whether the data comes from an Excel or from an API
+ * (§98). All that changes is the connector that produces the batch.
  */
 declare const datasetSchema: z.ZodObject<{
     id: z.ZodString;
@@ -1013,7 +1016,7 @@ declare const importSchema: z.ZodObject<{
     completedAt: z.ZodNullable<z.ZodISODateTime>;
 }, z.core.$strip>;
 type Import = z.infer<typeof importSchema>;
-/** Campos de destino que uma coluna pode alimentar. */
+/** Target fields a column can feed. */
 declare const TARGET_FIELDS: readonly ["date", "description", "amount", "currency", "customer", "supplier", "category", "invoiceNumber", "reference", "externalId", "ignore"];
 declare const targetFieldSchema: z.ZodEnum<{
     date: "date";
@@ -1030,11 +1033,11 @@ declare const targetFieldSchema: z.ZodEnum<{
 }>;
 type TargetField = z.infer<typeof targetFieldSchema>;
 /**
- * Mapeamento de uma coluna do ficheiro para um campo do domínio (§27).
+ * Mapping of a column of the file to a domain field (§27).
  *
- * `confidence` alimenta a UI: acima de um limiar mostra-se pré-seleccionado com
- * visto; abaixo, pede-se confirmação. Mapear errado em silêncio é pior do que
- * perguntar.
+ * `confidence` feeds the UI: above a threshold it is shown preselected with a
+ * tick; below it, confirmation is asked for. Mapping wrongly in silence is worse
+ * than asking.
  */
 declare const columnMappingSchema: z.ZodObject<{
     sourceColumn: z.ZodString;
@@ -1112,10 +1115,11 @@ declare const confirmMappingInputSchema: z.ZodObject<{
 }, z.core.$strip>;
 type ConfirmMappingInput = z.infer<typeof confirmMappingInputSchema>;
 /**
- * Problema encontrado nos dados (§30).
+ * Problem found in the data (§30).
  *
- * Guardado em vez de apenas contado: o utilizador tem de poder abrir "12
- * transacções duplicadas" e ver quais, senão o painel de qualidade é decoração.
+ * Stored rather than merely counted: the user has to be able to open "12
+ * duplicate transactions" and see which ones, otherwise the quality panel is
+ * decoration.
  */
 declare const dataQualityIssueSchema: z.ZodObject<{
     id: z.ZodString;
@@ -1206,23 +1210,23 @@ declare const importFilterSchema: z.ZodObject<{
 type ImportFilter = z.infer<typeof importFilterSchema>;
 
 /**
- * Núcleo financeiro.
+ * Financial core.
  *
- * Decisão de modelação: **uma tabela `Transaction` como facto único**, com
- * discriminador `type` e `customerId`/`supplierId` opcionais — em vez de tabelas
- * separadas para receita e despesa.
+ * Modelling decision: **a single `Transaction` table as the one fact**, with a
+ * `type` discriminator and optional `customerId`/`supplierId` — instead of
+ * separate tables for revenue and expense.
  *
- * Com tabelas separadas, cada métrica precisaria de duas queries e dois
- * conjuntos de índices, e o drill-down teria dois caminhos diferentes para o
- * mesmo gesto do utilizador. `Revenue` e `Expense` continuam a existir como
- * conceitos de domínio; só não são tabelas.
+ * With separate tables, each metric would need two queries and two sets of
+ * indexes, and the drill-down would have two different paths for the same user
+ * gesture. `Revenue` and `Expense` still exist as domain concepts; they just are
+ * not tables.
  */
 /**
- * De onde veio esta linha, exactamente.
+ * Where this row came from, exactly.
  *
- * É o que permite ir de "a margem caiu 3,2pp" até "estas 47 linhas, do ficheiro
- * despesas_julho.xlsx, folha Marketing, linhas 142–189". Sem isto guardado no
- * momento da ingestão, não há como reconstruir depois.
+ * It is what makes it possible to go from "the margin fell 3.2pp" to "these 47
+ * rows, from the file despesas_julho.xlsx, sheet Marketing, rows 142–189".
+ * Without this stored at ingestion time, there is no way to reconstruct it later.
  */
 declare const lineageRefSchema: z.ZodObject<{
     importId: z.ZodString;
@@ -1348,7 +1352,7 @@ declare const transactionFilterSchema: z.ZodObject<{
     page: z.ZodOptional<z.ZodCoercedNumber<unknown>>;
 }, z.core.$strip>;
 type TransactionFilter = z.infer<typeof transactionFilterSchema>;
-/** Agregado por dimensão — clientes, categorias, fornecedores. */
+/** Aggregate by dimension — customers, categories, suppliers. */
 declare const breakdownItemSchema: z.ZodObject<{
     id: z.ZodNullable<z.ZodString>;
     label: z.ZodString;
@@ -1361,7 +1365,7 @@ declare const breakdownItemSchema: z.ZodObject<{
     transactionCount: z.ZodNumber;
 }, z.core.$strip>;
 type BreakdownItem = z.infer<typeof breakdownItemSchema>;
-/** Ponto de uma série temporal, para os gráficos do §66. */
+/** Point of a time series, for the charts of §66. */
 declare const timeSeriesPointSchema: z.ZodObject<{
     period: z.ZodString;
     revenue: z.ZodNumber;
@@ -1372,24 +1376,24 @@ declare const timeSeriesPointSchema: z.ZodObject<{
 type TimeSeriesPoint = z.infer<typeof timeSeriesPointSchema>;
 
 /**
- * Contexto comercial — CRM leve.
+ * Commercial context — lightweight CRM.
  *
- * O §1.1 do PRD declara que o produto não é um CRM. Isto estende esse âmbito
- * por decisão explícita, e por isso fica em contexto próprio, com milestone
- * próprio (M8), depois de a promessa financeira estar entregue.
+ * §1.1 of the PRD states that the product is not a CRM. This extends that scope
+ * by an explicit decision, and for that reason it stays in its own context, with
+ * its own milestone (M8), after the financial promise has been delivered.
  *
- * O que o impede de ser um CRM medíocre colado ao lado de um produto financeiro
- * bom são os laços ao financeiro:
+ * What stops it from being a mediocre CRM glued next to a good financial product
+ * are the ties to the financial side:
  *
- *   - oportunidade ganha confrontada com a receita real do cliente;
- *   - pipeline ponderado (`value × probability`) como nó do grafo de forecast;
- *   - detectores de churn e renovação a alimentar os insights;
- *   - contexto comercial nas respostas da IA — "o cliente caiu 18% e tem
- *     renovação a 30 dias sem oportunidade aberta".
+ *   - a won opportunity confronted with the client's real revenue;
+ *   - weighted pipeline (`value × probability`) as a node of the forecast graph;
+ *   - churn and renewal detectors feeding the insights;
+ *   - commercial context in the AI answers — "the client dropped 18% and has a
+ *     renewal in 30 days with no open opportunity".
  *
- * Aviso de privacidade: leads e contactos são **dados pessoais de terceiros**
- * (classe S2). O cliente é o responsável pelo tratamento e pela base legal;
- * nós somos subcontratante. Ver `docs/SEGURANCA_E_PRIVACIDADE.md`.
+ * Privacy notice: leads and contacts are **personal data of third parties**
+ * (class S2). The client is the controller and holds the legal basis; we are the
+ * processor. See `docs/SEGURANCA_E_PRIVACIDADE.md`.
  */
 declare const leadSchema: z.ZodObject<{
     id: z.ZodString;
@@ -1445,7 +1449,7 @@ declare const opportunitySchema: z.ZodObject<{
     updatedAt: z.ZodISODateTime;
 }, z.core.$strip>;
 type Opportunity = z.infer<typeof opportunitySchema>;
-/** Alvo de uma actividade. Polimórfico para não haver três tabelas iguais. */
+/** Target of an activity. Polymorphic so there are not three identical tables. */
 declare const ACTIVITY_SUBJECTS: readonly ["LEAD", "CUSTOMER", "OPPORTUNITY"];
 declare const activitySubjectSchema: z.ZodEnum<{
     LEAD: "LEAD";
@@ -1477,7 +1481,7 @@ declare const activitySchema: z.ZodObject<{
     createdAt: z.ZodISODateTime;
 }, z.core.$strip>;
 type Activity = z.infer<typeof activitySchema>;
-/** Resumo do pipeline por estágio, para o funil e para o forecast. */
+/** Pipeline summary by stage, for the funnel and for the forecast. */
 declare const pipelineSummarySchema: z.ZodObject<{
     stages: z.ZodArray<z.ZodObject<{
         stage: z.ZodEnum<{
@@ -1563,23 +1567,25 @@ declare const leadFilterSchema: z.ZodObject<{
 type LeadFilter = z.infer<typeof leadFilterSchema>;
 
 /**
- * Métricas como grafo dirigido acíclico.
+ * Metrics as a directed acyclic graph.
  *
- * Uma métrica depende de outras: `EBITDA` depende de `GROSS_PROFIT` e `OPEX`;
- * `GROSS_MARGIN` depende de `GROSS_PROFIT` e `REVENUE`. Modelar isso como grafo
- * em vez de funções soltas resolve quatro coisas de uma vez:
+ * One metric depends on others: `EBITDA` depends on `GROSS_PROFIT` and `OPEX`;
+ * `GROSS_MARGIN` depends on `GROSS_PROFIT` and `REVENUE`. Modelling that as a
+ * graph instead of loose functions solves four things at once:
  *
- *   1. a ordem de cálculo deixa de ser responsabilidade de quem escreve a métrica;
- *   2. só as folhas tocam na base — todo o resto é função pura, e testa-se sem
- *      Postgres, que é o que torna a regressão do §87 praticável;
- *   3. a atribuição de variância (§24) sai de graça: para saber por que caiu o
- *      lucro, desce-se o grafo atribuindo o delta a cada filho;
- *   4. o cache invalida-se por construção, porque a chave inclui a versão do
- *      dataset.
+ *   1. the order of calculation stops being the responsibility of whoever writes
+ *      the metric;
+ *   2. only the leaves touch the database — everything else is a pure function,
+ *      and is tested without Postgres, which is what makes the regression of §87
+ *      practicable;
+ *   3. variance attribution (§24) comes for free: to know why profit fell, you
+ *      walk down the graph attributing the delta to each child;
+ *   4. the cache invalidates by construction, because the key includes the
+ *      dataset version.
  *
- * Não confundir com o grafo de evidência (`evidence.ts`): este liga métrica a
- * métrica e vive em código; aquele liga métrica a transacções e a linhas de
- * ficheiro, e é construído por consulta. Tocam-se nas folhas.
+ * Not to be confused with the evidence graph (`evidence.ts`): this one links
+ * metric to metric and lives in code; that one links metric to transactions and
+ * to file rows, and is built by query. They touch at the leaves.
  */
 declare const METRIC_IDS: readonly ["REVENUE", "EXPENSES", "COGS", "OPEX", "CASH", "ACCOUNTS_RECEIVABLE", "ACCOUNTS_PAYABLE", "BUDGETED_EXPENSES", "GROSS_PROFIT", "GROSS_MARGIN", "OPERATING_PROFIT", "EBITDA", "EBITDA_MARGIN", "REVENUE_GROWTH", "EXPENSE_GROWTH", "CUSTOMER_CONCENTRATION", "BURN", "RUNWAY", "BUDGET_VARIANCE"];
 declare const metricIdSchema: z.ZodEnum<{
@@ -1605,11 +1611,11 @@ declare const metricIdSchema: z.ZodEnum<{
 }>;
 type MetricId = z.infer<typeof metricIdSchema>;
 /**
- * Unidade do valor.
+ * Unit of the value.
  *
- * Existe para a formatação não adivinhar: 42 pode ser 42 €, 42% ou 42 meses, e
- * um `Intl.NumberFormat` com a unidade errada produz um número plausível e
- * falso — a pior espécie num relatório financeiro.
+ * Exists so that formatting does not have to guess: 42 can be €42, 42% or 42
+ * months, and an `Intl.NumberFormat` with the wrong unit produces a plausible
+ * and false number — the worst kind in a financial report.
  */
 declare const METRIC_UNITS: readonly ["MONEY", "PERCENT", "MONTHS", "RATIO", "COUNT"];
 declare const metricUnitSchema: z.ZodEnum<{
@@ -1621,10 +1627,10 @@ declare const metricUnitSchema: z.ZodEnum<{
 }>;
 type MetricUnit = z.infer<typeof metricUnitSchema>;
 /**
- * Declaração de um nó, sem a função de cálculo.
+ * Declaration of a node, without the calculation function.
  *
- * A implementação vive no backend; isto é o que o frontend precisa de saber para
- * desenhar o grafo e explicar de onde vem cada número.
+ * The implementation lives in the backend; this is what the frontend needs to
+ * know to draw the graph and explain where each number comes from.
  */
 declare const metricNodeSpecSchema: z.ZodObject<{
     id: z.ZodEnum<{
@@ -1723,11 +1729,11 @@ declare const metricValueSchema: z.ZodObject<{
 }, z.core.$strip>;
 type MetricValue = z.infer<typeof metricValueSchema>;
 /**
- * Um ramo da explicação de uma variação.
+ * One branch of the explanation of a variation.
  *
- * `contributionPercent` é a fatia deste filho no delta do pai — é o que permite
- * dizer "dois clientes explicam 72% da queda" em vez de listar vinte linhas sem
- * hierarquia.
+ * `contributionPercent` is this child's slice of the parent's delta — it is what
+ * makes it possible to say "two customers explain 72% of the drop" instead of
+ * listing twenty rows with no hierarchy.
  */
 declare const varianceContributionSchema: z.ZodObject<{
     label: z.ZodString;
@@ -1759,11 +1765,11 @@ declare const varianceContributionSchema: z.ZodObject<{
 }, z.core.$strip>;
 type VarianceContribution = z.infer<typeof varianceContributionSchema>;
 /**
- * Árvore de atribuição de variância (§24).
+ * Variance attribution tree (§24).
  *
- * Recursiva, porque a pergunta "porquê?" repete-se: o lucro caiu por causa das
- * despesas, as despesas por causa do marketing, o marketing por causa de três
- * facturas. Cada nó é clicável até chegar à linha do ficheiro.
+ * Recursive, because the question "why?" repeats: profit fell because of
+ * expenses, expenses because of marketing, marketing because of three invoices.
+ * Each node is clickable all the way to the row of the file.
  */
 interface VarianceTree {
     label: string;
@@ -1802,12 +1808,12 @@ declare const metricQuerySchema: z.ZodObject<{
 }, z.core.$strip>;
 type MetricQuery = z.infer<typeof metricQuerySchema>;
 /**
- * As secções que a Visão geral pode ter, e a forma que o negócio lhe dá.
+ * The sections the Overview can have, and the shape the business gives it.
  *
- * A composição é derivada dos dados, não gerada: sem orçamento carregado não há
- * desvio que mostrar, e um cliente a valer 40% da receita sobe para primeiro.
- * O `porque` transporta as razões — é o que impede um painel que muda de forma
- * de se ler como instabilidade.
+ * The composition is derived from the data, not generated: with no budget
+ * uploaded there is no variance to show, and a customer worth 40% of the revenue
+ * moves up to first. `porque` carries the reasons — it is what stops a panel
+ * that changes shape from reading as instability.
  */
 declare const OVERVIEW_SECTIONS: readonly ["METRICAS", "O_QUE_MUDOU", "ALERTAS", "EVOLUCAO", "CLIENTES", "CATEGORIAS", "ORCAMENTO", "TESOURARIA"];
 declare const overviewSectionSchema: z.ZodEnum<{
@@ -1856,7 +1862,7 @@ declare const overviewShapeSchema: z.ZodObject<{
     porque: z.ZodArray<z.ZodString>;
 }, z.core.$strip>;
 type OverviewShape = z.infer<typeof overviewShapeSchema>;
-/** Resposta do Overview, num só pedido para o dashboard não fazer dez. */
+/** Overview response, in a single request so the dashboard does not make ten. */
 declare const dashboardSummarySchema: z.ZodObject<{
     period: z.ZodString;
     comparePeriod: z.ZodString;
@@ -1941,22 +1947,22 @@ declare const dashboardSummarySchema: z.ZodObject<{
 type DashboardSummary = z.infer<typeof dashboardSummarySchema>;
 
 /**
- * Evidência — a peça que sustenta a promessa do produto.
+ * Evidence — the piece that holds up the product's promise.
  *
- * Todas as ferramentas de IA financeira dão uma resposta. Esta deixa verificá-la.
- * O caminho tem de ser sempre percorrível:
+ * Every financial AI tool gives an answer. This one lets you verify it. The path
+ * always has to be walkable:
  *
- *   conclusão → cálculo → métrica → entidade → transacção → ficheiro → linha
+ *   conclusion → calculation → metric → entity → transaction → file → row
  *
- * Sem isto, o produto é indistinguível de um LLM com um Excel — e o utilizador
- * não tem como apanhar o erro, que é exactamente o valor que se vende.
+ * Without this, the product is indistinguishable from an LLM with an Excel — and
+ * the user has no way to catch the error, which is exactly the value being sold.
  */
 /**
- * Como um número foi obtido.
+ * How a number was obtained.
  *
- * `inputs` são os valores que entraram, `formula` é o que se fez com eles.
- * Mostrado no painel de evidência para o utilizador refazer a conta de cabeça se
- * quiser — e é isso que constrói confiança, não a promessa de que está certo.
+ * `inputs` are the values that went in, `formula` is what was done with them.
+ * Shown in the evidence panel for the user to redo the sum in their head if they
+ * want — and that is what builds trust, not the promise that it is right.
  */
 declare const calculationSchema: z.ZodObject<{
     metricId: z.ZodEnum<{
@@ -2010,7 +2016,7 @@ declare const calculationSchema: z.ZodObject<{
     result: z.ZodNumber;
 }, z.core.$strip>;
 type Calculation = z.infer<typeof calculationSchema>;
-/** Transacção citada como prova, com a linha original de onde saiu. */
+/** Transaction cited as proof, with the original row it came from. */
 declare const evidenceTransactionSchema: z.ZodObject<{
     id: z.ZodString;
     date: z.ZodString;
@@ -2029,12 +2035,12 @@ declare const evidenceTransactionSchema: z.ZodObject<{
 }, z.core.$strip>;
 type EvidenceTransaction = z.infer<typeof evidenceTransactionSchema>;
 /**
- * Pacote de evidência de uma afirmação.
+ * Evidence bundle for a statement.
  *
- * `transactionCount` e `sampleTransactions` existem separados de propósito: uma
- * afirmação pode assentar em milhares de linhas, e devolvê-las todas seria
- * inútil para o utilizador e caro para a base. Mostra-se a contagem real e uma
- * amostra, com caminho para ver o resto no explorador.
+ * `transactionCount` and `sampleTransactions` exist separately on purpose: a
+ * statement can rest on thousands of rows, and returning them all would be
+ * useless for the user and expensive for the database. The real count and a
+ * sample are shown, with a path to see the rest in the explorer.
  */
 declare const evidenceSchema: z.ZodObject<{
     id: z.ZodString;
@@ -2118,30 +2124,33 @@ declare const evidenceSchema: z.ZodObject<{
 type Evidence = z.infer<typeof evidenceSchema>;
 
 /**
- * Insights — o que o sistema diz antes de lhe perguntarem (§36, §115).
+ * Insights — what the system says before being asked (§36, §115).
  *
- * A diferença entre um dashboard e este produto está aqui: o dashboard espera
- * que o utilizador descubra; isto abre já com "há três coisas que devias saber".
+ * The difference between a dashboard and this product is here: the dashboard
+ * waits for the user to discover; this one opens straight away with "there are
+ * three things you should know".
  *
- * Cada insight nasce de um detector determinístico sobre métricas calculadas,
- * nunca de um modelo a opinar. A IA, quando chegar no M7, redige — não decide o
- * que é anómalo.
+ * Each insight is born of a deterministic detector over calculated metrics,
+ * never of a model giving an opinion. The AI, when it arrives in M7, writes — it
+ * does not decide what is anomalous.
  */
 /**
- * **Chave de tradução e parâmetros, nunca texto pronto.**
+ * **Translation key and parameters, never ready-made text.**
  *
- * A v0.3.0 descrevia `title` e `description` como texto "já traduzido no locale
- * do pedido", e estava errada sobre o que o produto faz. Traduzir no servidor
- * obrigava-o a ter o seu próprio catálogo em quatro idiomas, com o seu próprio
- * gate de paridade — uma segunda cópia da infraestrutura de i18n, e a garantia
- * de que as duas divergiriam. Pior: a redacção passaria a viver em dois sítios.
+ * v0.3.0 described `title` and `description` as text "already translated in the
+ * locale of the request", and was wrong about what the product does. Translating
+ * on the server forced it to have its own catalogue in four languages, with its
+ * own parity gate — a second copy of the i18n infrastructure, and the guarantee
+ * that the two would diverge. Worse: the wording would come to live in two
+ * places.
  *
- * Por baixo disto há uma separação que vale por si: **decidir o que é anómalo e
- * decidir como se diz são trabalhos diferentes**. O primeiro é determinístico e
- * testa-se com números; o segundo é editorial e revê-se lendo. Separados, o
- * detector testa-se sem uma única palavra de português no meio.
+ * Underneath this there is a separation that is worth it on its own: **deciding
+ * what is anomalous and deciding how it is said are different jobs**. The first
+ * is deterministic and is tested with numbers; the second is editorial and is
+ * reviewed by reading. Separated, the detector is tested without a single word
+ * of Portuguese in the middle.
  *
- * O desvio ao §37 está registado em `docs/ARCHITECTURE.md`.
+ * The deviation from §37 is recorded in `docs/ARCHITECTURE.md`.
  */
 declare const insightSchema: z.ZodObject<{
     id: z.ZodString;
@@ -2278,16 +2287,17 @@ declare const insightSchema: z.ZodObject<{
 }, z.core.$strip>;
 type Insight = z.infer<typeof insightSchema>;
 /**
- * A resposta do endpoint, e não só a lista.
+ * The endpoint's response, and not just the list.
  *
- * A moeda vem aqui para a página não ter de pedir o resumo do dashboard só para
- * poder formatar meia dúzia de valores — seriam três queries e uma avaliação
- * inteira do grafo de métricas. A versão do dataset vem porque é o que torna a
- * lista reproduzível (§46): os mesmos insights sobre os mesmos dados.
+ * The currency comes here so the page does not have to request the dashboard
+ * summary just to be able to format half a dozen values — that would be three
+ * queries and a whole evaluation of the metrics graph. The dataset version comes
+ * because it is what makes the list reproducible (§46): the same insights over
+ * the same data.
  *
- * Repare no que **não** está aqui: `organizationId`. O tenant é implícito na
- * sessão, e devolvê-lo em cada objecto seria repetir em cada linha uma coisa que
- * o cliente já sabe e não pode escolher.
+ * Note what is **not** here: `organizationId`. The tenant is implicit in the
+ * session, and returning it in every object would be repeating on every row
+ * something the client already knows and cannot choose.
  */
 declare const insightsResponseSchema: z.ZodObject<{
     period: z.ZodString;
@@ -2429,12 +2439,12 @@ declare const insightsResponseSchema: z.ZodObject<{
 }, z.core.$strip>;
 type InsightsResponse = z.infer<typeof insightsResponseSchema>;
 /**
- * Recomendação (§38).
+ * Recommendation (§38).
  *
- * Separada do insight de propósito. O insight é o que aconteceu, e é verificável;
- * a recomendação é o que fazer a seguir, e é opinião. Misturar as duas faria uma
- * sugestão discutível herdar a autoridade de um facto — que é exactamente a
- * confusão que o §20 obriga a evitar.
+ * Separate from the insight on purpose. The insight is what happened, and it is
+ * verifiable; the recommendation is what to do next, and it is opinion. Mixing
+ * the two would make a debatable suggestion inherit the authority of a fact —
+ * which is exactly the confusion §20 requires avoiding.
  */
 declare const recommendationSchema: z.ZodObject<{
     id: z.ZodString;
@@ -2446,13 +2456,13 @@ declare const recommendationSchema: z.ZodObject<{
 }, z.core.$strip>;
 type Recommendation = z.infer<typeof recommendationSchema>;
 /**
- * Item do "What changed?" (§35). Cada linha é clicável até à evidência.
+ * "What changed?" item (§35). Each row is clickable through to the evidence.
  *
- * `direction` e `sentiment` são minúsculas, ao contrário de todos os outros
- * enums deste pacote. Não é descuido: os outros são valores **persistidos** —
- * papéis, estados, tipos —, e estes são vocabulário de apresentação que nunca
- * chega à base. Uniformizá-los obrigaria a converter em ambos os lados para não
- * ganhar nada.
+ * `direction` and `sentiment` are lowercase, unlike every other enum in this
+ * package. It is not carelessness: the others are **persisted** values — roles,
+ * states, types —, and these are presentation vocabulary that never reaches the
+ * database. Uniformizing them would force converting on both sides to gain
+ * nothing.
  */
 declare const changeItemSchema: z.ZodObject<{
     metricId: z.ZodEnum<{
@@ -2558,24 +2568,24 @@ declare const insightFilterSchema: z.ZodObject<{
 type InsightFilter = z.infer<typeof insightFilterSchema>;
 
 /**
- * Camada de IA.
+ * AI layer.
  *
- * A regra que estrutura tudo (§9): a IA **interpreta**, não calcula. Recebe
- * métricas já calculadas de forma determinística e explica-as. Um número que
- * saia de um modelo nunca é verdade financeira.
+ * The rule that structures everything (§9): the AI **interprets**, it does not
+ * calculate. It receives metrics already calculated deterministically and
+ * explains them. A number that comes out of a model is never financial truth.
  *
- *   dados → normalização → domínio → cálculo → métricas → evidência → IA → explicação
+ *   data → normalization → domain → calculation → metrics → evidence → AI → explanation
  *
- * O caminho `Excel → LLM → verdade financeira` está proibido, e é a diferença
- * entre este produto e um chat com uma folha de cálculo.
+ * The path `Excel → LLM → financial truth` is forbidden, and it is the
+ * difference between this product and a chat with a spreadsheet.
  */
 /**
- * Uma afirmação dentro de uma resposta (§20).
+ * A statement inside an answer (§20).
  *
- * `type` obriga a separar facto de inferência. Não é cosmético: é o que permite
- * ao utilizador saber o que pode levar a uma reunião e o que tem de confirmar
- * primeiro. Sem esta separação, uma suposição plausível ganha o peso de um dado
- * auditado.
+ * `type` forces separating fact from inference. It is not cosmetic: it is what
+ * lets the user know what can be taken to a meeting and what has to be confirmed
+ * first. Without this separation, a plausible assumption gains the weight of an
+ * audited datum.
  */
 declare const keyPointSchema: z.ZodObject<{
     type: z.ZodEnum<{
@@ -2589,10 +2599,10 @@ declare const keyPointSchema: z.ZodObject<{
 }, z.core.$strip>;
 type KeyPoint = z.infer<typeof keyPointSchema>;
 /**
- * Pressuposto assumido pela resposta (§40).
+ * Assumption taken by the answer (§40).
  *
- * Toda a projecção assenta em pressupostos, e escondê-los é como se apresenta
- * uma opinião como previsão. Ficam explícitos e editáveis.
+ * Every projection rests on assumptions, and hiding them is how an opinion gets
+ * presented as a forecast. They stay explicit and editable.
  */
 declare const assumptionSchema: z.ZodObject<{
     label: z.ZodString;
@@ -2606,11 +2616,11 @@ declare const aiRecommendationSchema: z.ZodObject<{
 }, z.core.$strip>;
 type AIRecommendation = z.infer<typeof aiRecommendationSchema>;
 /**
- * Contrato de resposta (§19).
+ * Answer contract (§19).
  *
- * Estruturado em vez de texto livre porque a UI precisa de renderizar cada parte
- * de forma diferente — e porque um contrato validável é o que permite testar que
- * o modelo não fugiu do formato (§87, testes de contrato de IA).
+ * Structured instead of free text because the UI needs to render each part
+ * differently — and because a validatable contract is what allows testing that
+ * the model did not stray from the format (§87, AI contract tests).
  */
 declare const aiAnswerSchema: z.ZodObject<{
     answer: z.ZodString;
@@ -2955,11 +2965,11 @@ declare const askInputSchema: z.ZodObject<{
 }, z.core.$strip>;
 type AskInput = z.infer<typeof askInputSchema>;
 /**
- * Consumo de IA (§15).
+ * AI consumption (§15).
  *
- * Registado por pedido e nunca escondido do cliente (§81). Cobrar por mensagem
- * seria penalizar o uso da funcionalidade central; o modelo é limite por plano
- * com consumo à vista.
+ * Recorded per request and never hidden from the client (§81). Charging per
+ * message would be penalizing the use of the central feature; the model is a
+ * per-plan limit with consumption in sight.
  */
 declare const aiUsageSchema: z.ZodObject<{
     id: z.ZodString;
@@ -2993,11 +3003,11 @@ declare const aiUsageSummarySchema: z.ZodObject<{
 }, z.core.$strip>;
 type AIUsageSummary = z.infer<typeof aiUsageSummarySchema>;
 /**
- * O que o ecrã de privacidade mostra (§74).
+ * What the privacy screen shows (§74).
  *
- * Sem eufemismo: que provider, que modelo, e **se os dados saem**. Um provider
- * rotulado "local" que envia para fora é exactamente o que destrói a confiança
- * que este produto vende.
+ * Without euphemism: which provider, which model, and **whether the data
+ * leaves**. A provider labelled "local" that sends data outside is exactly what
+ * destroys the trust this product sells.
  */
 declare const aiPrivacyStatusSchema: z.ZodObject<{
     providerKind: z.ZodEnum<{
@@ -3020,15 +3030,15 @@ declare const aiPrivacyStatusSchema: z.ZodObject<{
 type AIPrivacyStatus = z.infer<typeof aiPrivacyStatusSchema>;
 
 /**
- * Cenários e previsão (§39, §40).
+ * Scenarios and forecast (§39, §40).
  *
- * O cálculo é determinístico e corre sobre o mesmo grafo de métricas: mudar um
- * pressuposto muda um nó, e a mudança propaga-se pelas dependências. A IA
- * explica o resultado; não o produz.
+ * The calculation is deterministic and runs over the same metrics graph:
+ * changing an assumption changes a node, and the change propagates through the
+ * dependencies. The AI explains the result; it does not produce it.
  *
- * É isso que permite a mesma pergunta dar sempre a mesma resposta — requisito
- * óbvio para quem vai levar o número a um conselho, e que um modelo generativo
- * sozinho não garante.
+ * That is what allows the same question to always give the same answer — an
+ * obvious requirement for whoever is going to take the number to a board, and
+ * one a generative model on its own does not guarantee.
  */
 declare const scenarioInputSchema: z.ZodObject<{
     type: z.ZodEnum<{
@@ -3136,10 +3146,10 @@ declare const forecastPointSchema: z.ZodObject<{
 }, z.core.$strip>;
 type ForecastPoint = z.infer<typeof forecastPointSchema>;
 /**
- * Previsão com os três cenários do §40.
+ * Forecast with the three scenarios of §40.
  *
- * `assumptions` nunca é opcional: uma previsão sem pressupostos à vista é um
- * número com ar de certeza, e o §40 obriga a mostrá-los.
+ * `assumptions` is never optional: a forecast without assumptions in sight is a
+ * number with the air of certainty, and §40 requires showing them.
  */
 declare const forecastSchema: z.ZodObject<{
     organizationId: z.ZodString;
@@ -3168,14 +3178,16 @@ declare const forecastSchema: z.ZodObject<{
 type Forecast = z.infer<typeof forecastSchema>;
 
 /**
- * Relatórios (§44, §45, §46).
+ * Reports (§44, §45, §46).
  *
- * O Monthly Financial Review é o artefacto que cumpre a promessa vendável:
- * carrega os ficheiros, recebe a revisão mensal de gestão em cinco minutos. É o
- * que substitui as quatro horas que um Finance Manager gasta todos os meses.
+ * The Monthly Financial Review is the artefact that fulfils the sellable
+ * promise: upload the files, receive the monthly management review in five
+ * minutes. It is what replaces the four hours a Finance Manager spends every
+ * month.
  *
- * Entregue no M6 com secções geradas por template — sem IA. A IA chega no M7
- * para redigir a narrativa do que já existe, o que é acréscimo e não requisito.
+ * Delivered in M6 with sections generated by template — without AI. The AI
+ * arrives in M7 to write the narrative of what already exists, which is an
+ * addition and not a requirement.
  */
 declare const REPORT_SECTION_KINDS: readonly ["EXECUTIVE_SUMMARY", "REVENUE", "EXPENSES", "PROFIT", "MARGIN", "CASH", "MAJOR_CHANGES", "RISKS", "OPPORTUNITIES", "RECOMMENDATIONS", "EVIDENCE", "APPENDIX"];
 declare const reportSectionKindSchema: z.ZodEnum<{
@@ -3214,12 +3226,11 @@ declare const reportSectionSchema: z.ZodObject<{
 }, z.core.$strip>;
 type ReportSection = z.infer<typeof reportSectionSchema>;
 /**
- * Metadados de reprodutibilidade (§46).
+ * Reproducibility metadata (§46).
  *
- * Sem isto, reimprimir o relatório de Julho depois de alguém corrigir um
- * ficheiro dá outro número, e ninguém consegue dizer qual estava certo. Num
- * documento que vai para um banco ou um conselho, é a diferença entre relatório
- * e rascunho.
+ * Without this, reprinting the July report after someone corrects a file gives
+ * another number, and nobody can say which one was right. In a document that
+ * goes to a bank or a board, it is the difference between a report and a draft.
  */
 declare const reportMetadataSchema: z.ZodObject<{
     organizationId: z.ZodString;
@@ -3309,11 +3320,11 @@ declare const exportRequestSchema: z.ZodObject<{
 }, z.core.$strip>;
 type ExportRequest = z.infer<typeof exportRequestSchema>;
 /**
- * Ficheiro exportado.
+ * Exported file.
  *
- * URL assinado e de vida curta, servido de fora do domínio da aplicação — um
- * relatório financeiro acessível por link permanente seria fuga com aparência de
- * funcionalidade.
+ * A signed, short-lived URL, served from outside the application's domain — a
+ * financial report accessible by a permanent link would be a leak with the
+ * appearance of a feature.
  */
 declare const exportResultSchema: z.ZodObject<{
     url: z.ZodString;
@@ -3323,27 +3334,28 @@ declare const exportResultSchema: z.ZodObject<{
 type ExportResult = z.infer<typeof exportResultSchema>;
 
 /**
- * Faturação (§78–§81).
+ * Billing (§78–§81).
  *
- * Dois princípios que moldam o modelo:
+ * Two principles that shape the model:
  *
- * 1. **Nunca cobrar IA por mensagem.** Cobrar por pergunta ensina o cliente a
- *    evitar a funcionalidade central. O modelo é limite por plano com consumo
- *    sempre à vista (§81).
+ * 1. **Never charge for AI per message.** Charging per question teaches the
+ *    client to avoid the central feature. The model is a per-plan limit with
+ *    consumption always in sight (§81).
  *
- * 2. **Segurança não é plano pago.** Cifragem, isolamento, audit log e o direito
- *    a exportar e apagar são iguais em todos os planos — o RGPD Art. 32 e a LGPD
- *    Art. 46 obrigam a medidas adequadas para todo o tratamento, e um plano "sem
- *    protecção" seria prova documentada de incumprimento. O que escala por preço
- *    é **soberania e controlo**: residência de dados, on-premise, BYOK, IA
- *    privada, SSO, retenção à medida. Ver `docs/SEGURANCA_E_PRIVACIDADE.md`.
+ * 2. **Security is not a paid plan.** Encryption, isolation, audit log and the
+ *    right to export and delete are the same on every plan — GDPR Art. 32 and
+ *    LGPD Art. 46 require adequate measures for all processing, and a plan
+ *    "without protection" would be documented proof of non-compliance. What
+ *    scales by price is **sovereignty and control**: data residency,
+ *    on-premise, BYOK, private AI, SSO, custom retention. See
+ *    `docs/SEGURANCA_E_PRIVACIDADE.md`.
  */
 /**
- * Limites por plano.
+ * Per-plan limits.
  *
- * `null` significa sem limite. Ultrapassar bloqueia a acção nova, nunca apaga
- * nem esconde dados já lá — perder acesso ao histórico por causa de faturação
- * seria reter dados do cliente como refém.
+ * `null` means no limit. Exceeding it blocks the new action, never deletes nor
+ * hides data already there — losing access to the history because of billing
+ * would be holding the client's data hostage.
  */
 declare const planLimitsSchema: z.ZodObject<{
     maxUsers: z.ZodNullable<z.ZodNumber>;
@@ -3439,7 +3451,7 @@ declare const checkoutSessionSchema: z.ZodObject<{
     sessionId: z.ZodString;
 }, z.core.$strip>;
 type CheckoutSession = z.infer<typeof checkoutSessionSchema>;
-/** Consumo face aos limites, para o painel nunca esconder o gasto (§81). */
+/** Consumption against the limits, so the panel never hides the spend (§81). */
 declare const usageSummarySchema: z.ZodObject<{
     organizationId: z.ZodString;
     tier: z.ZodEnum<{

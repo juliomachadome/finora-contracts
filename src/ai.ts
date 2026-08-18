@@ -10,44 +10,44 @@ import {
 import { evidenceSchema, calculationSchema } from './evidence.js'
 
 /**
- * Camada de IA.
+ * AI layer.
  *
- * A regra que estrutura tudo (§9): a IA **interpreta**, não calcula. Recebe
- * métricas já calculadas de forma determinística e explica-as. Um número que
- * saia de um modelo nunca é verdade financeira.
+ * The rule that structures everything (§9): the AI **interprets**, it does not
+ * calculate. It receives metrics already calculated deterministically and
+ * explains them. A number that comes out of a model is never financial truth.
  *
- *   dados → normalização → domínio → cálculo → métricas → evidência → IA → explicação
+ *   data → normalization → domain → calculation → metrics → evidence → AI → explanation
  *
- * O caminho `Excel → LLM → verdade financeira` está proibido, e é a diferença
- * entre este produto e um chat com uma folha de cálculo.
+ * The path `Excel → LLM → financial truth` is forbidden, and it is the
+ * difference between this product and a chat with a spreadsheet.
  */
 
 /**
- * Uma afirmação dentro de uma resposta (§20).
+ * A statement inside an answer (§20).
  *
- * `type` obriga a separar facto de inferência. Não é cosmético: é o que permite
- * ao utilizador saber o que pode levar a uma reunião e o que tem de confirmar
- * primeiro. Sem esta separação, uma suposição plausível ganha o peso de um dado
- * auditado.
+ * `type` forces separating fact from inference. It is not cosmetic: it is what
+ * lets the user know what can be taken to a meeting and what has to be confirmed
+ * first. Without this separation, a plausible assumption gains the weight of an
+ * audited datum.
  */
 export const keyPointSchema = z.object({
   type: aiResponseTypeSchema,
   text: z.string(),
-  /** Presente em FACT e CALCULATION. Ausente é sinal de afirmação não suportada. */
+  /** Present in FACT and CALCULATION. Absent is a sign of an unsupported statement. */
   evidenceId: idSchema.nullable(),
 })
 export type KeyPoint = z.infer<typeof keyPointSchema>
 
 /**
- * Pressuposto assumido pela resposta (§40).
+ * Assumption taken by the answer (§40).
  *
- * Toda a projecção assenta em pressupostos, e escondê-los é como se apresenta
- * uma opinião como previsão. Ficam explícitos e editáveis.
+ * Every projection rests on assumptions, and hiding them is how an opinion gets
+ * presented as a forecast. They stay explicit and editable.
  */
 export const assumptionSchema = z.object({
   label: z.string(),
   value: z.string(),
-  /** Verdadeiro quando foi o modelo a assumir, não o utilizador a declarar. */
+  /** True when it was the model assuming, not the user declaring. */
   inferred: z.boolean(),
 })
 export type Assumption = z.infer<typeof assumptionSchema>
@@ -59,11 +59,11 @@ export const aiRecommendationSchema = z.object({
 export type AIRecommendation = z.infer<typeof aiRecommendationSchema>
 
 /**
- * Contrato de resposta (§19).
+ * Answer contract (§19).
  *
- * Estruturado em vez de texto livre porque a UI precisa de renderizar cada parte
- * de forma diferente — e porque um contrato validável é o que permite testar que
- * o modelo não fugiu do formato (§87, testes de contrato de IA).
+ * Structured instead of free text because the UI needs to render each part
+ * differently — and because a validatable contract is what allows testing that
+ * the model did not stray from the format (§87, AI contract tests).
  */
 export const aiAnswerSchema = z.object({
   answer: z.string(),
@@ -74,11 +74,11 @@ export const aiAnswerSchema = z.object({
   recommendations: z.array(aiRecommendationSchema),
   followUpQuestions: z.array(z.string()),
   /**
-   * Verdadeiro quando os dados não chegavam para responder.
+   * True when the data was not enough to answer.
    *
-   * O §21 obriga a dizê-lo em vez de preencher o vazio com algo plausível — e
-   * admitir falta de dados é o comportamento que sustenta a confiança a longo
-   * prazo.
+   * §21 requires saying so instead of filling the void with something plausible
+   * — and admitting a lack of data is the behaviour that sustains trust in the
+   * long run.
    */
   insufficientData: z.boolean(),
 })
@@ -90,7 +90,7 @@ export const aiMessageSchema = z.object({
   role: z.enum(['USER', 'ASSISTANT']),
   content: z.string(),
   answer: aiAnswerSchema.nullable(),
-  /** Guardado com a resposta para o relatório ser reproduzível (§46, §47). */
+  /** Stored with the answer so the report is reproducible (§46, §47). */
   provider: z.string().nullable(),
   model: z.string().nullable(),
   promptVersion: z.string().nullable(),
@@ -115,11 +115,11 @@ export const askInputSchema = z.object({
 export type AskInput = z.infer<typeof askInputSchema>
 
 /**
- * Consumo de IA (§15).
+ * AI consumption (§15).
  *
- * Registado por pedido e nunca escondido do cliente (§81). Cobrar por mensagem
- * seria penalizar o uso da funcionalidade central; o modelo é limite por plano
- * com consumo à vista.
+ * Recorded per request and never hidden from the client (§81). Charging per
+ * message would be penalizing the use of the central feature; the model is a
+ * per-plan limit with consumption in sight.
  */
 export const aiUsageSchema = z.object({
   id: idSchema,
@@ -131,7 +131,7 @@ export const aiUsageSchema = z.object({
   inputTokens: z.number().int().nonnegative(),
   outputTokens: z.number().int().nonnegative(),
   cachedTokens: z.number().int().nonnegative(),
-  /** Cêntimos. Estimativa — o valor verdadeiro é o da factura do provider. */
+  /** Cents. An estimate — the true value is the one on the provider's invoice. */
   estimatedCostCents: z.number().int().nonnegative(),
   latencyMs: z.number().int().nonnegative(),
   createdAt: isoDateTimeSchema,
@@ -152,20 +152,20 @@ export const aiUsageSummarySchema = z.object({
 export type AIUsageSummary = z.infer<typeof aiUsageSummarySchema>
 
 /**
- * O que o ecrã de privacidade mostra (§74).
+ * What the privacy screen shows (§74).
  *
- * Sem eufemismo: que provider, que modelo, e **se os dados saem**. Um provider
- * rotulado "local" que envia para fora é exactamente o que destrói a confiança
- * que este produto vende.
+ * Without euphemism: which provider, which model, and **whether the data
+ * leaves**. A provider labelled "local" that sends data outside is exactly what
+ * destroys the trust this product sells.
  */
 export const aiPrivacyStatusSchema = z.object({
   providerKind: aiProviderKindSchema,
   model: z.string(),
-  /** Falso quando o endpoint sai da máquina ou da região configurada. */
+  /** False when the endpoint leaves the configured machine or region. */
   dataStaysLocal: z.boolean(),
   retentionPolicy: aiRetentionPolicySchema,
   isBYOK: z.boolean(),
-  /** Onde o pedido é processado, tanto quanto se sabe do endpoint. */
+  /** Where the request is processed, as far as is known from the endpoint. */
   processingRegion: z.string().nullable(),
 })
 export type AIPrivacyStatus = z.infer<typeof aiPrivacyStatusSchema>

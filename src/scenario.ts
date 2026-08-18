@@ -5,25 +5,25 @@ import { assumptionSchema } from './ai.js'
 import { metricIdSchema } from './metrics.js'
 
 /**
- * Cenários e previsão (§39, §40).
+ * Scenarios and forecast (§39, §40).
  *
- * O cálculo é determinístico e corre sobre o mesmo grafo de métricas: mudar um
- * pressuposto muda um nó, e a mudança propaga-se pelas dependências. A IA
- * explica o resultado; não o produz.
+ * The calculation is deterministic and runs over the same metrics graph:
+ * changing an assumption changes a node, and the change propagates through the
+ * dependencies. The AI explains the result; it does not produce it.
  *
- * É isso que permite a mesma pergunta dar sempre a mesma resposta — requisito
- * óbvio para quem vai levar o número a um conselho, e que um modelo generativo
- * sozinho não garante.
+ * That is what allows the same question to always give the same answer — an
+ * obvious requirement for whoever is going to take the number to a board, and
+ * one a generative model on its own does not guarantee.
  */
 
 export const scenarioInputSchema = z.object({
   type: scenarioTypeSchema,
   name: z.string().min(1).max(160),
   basePeriod: periodSchema,
-  /** Meses a projectar a partir do período base. */
+  /** Months to project from the base period. */
   horizonMonths: z.number().int().min(1).max(36).default(12),
   /**
-   * Parâmetros da alteração, conforme o tipo:
+   * Parameters of the change, according to the type:
    *
    *   REVENUE_CHANGE   { percent: -10 }
    *   EXPENSE_CHANGE   { categoryId, percent: 20 }
@@ -53,7 +53,7 @@ export const scenarioResultSchema = z.object({
   currency: currencySchema,
   impacts: z.array(scenarioImpactSchema),
   assumptions: z.array(assumptionSchema),
-  /** Redigida pela IA a partir dos impactos já calculados (M7). */
+  /** Written by the AI from the already calculated impacts (M7). */
   explanation: z.string().nullable(),
   datasetVersion: z.number().int(),
   createdAt: isoDateTimeSchema,
@@ -71,10 +71,10 @@ export const forecastPointSchema = z.object({
 export type ForecastPoint = z.infer<typeof forecastPointSchema>
 
 /**
- * Previsão com os três cenários do §40.
+ * Forecast with the three scenarios of §40.
  *
- * `assumptions` nunca é opcional: uma previsão sem pressupostos à vista é um
- * número com ar de certeza, e o §40 obriga a mostrá-los.
+ * `assumptions` is never optional: a forecast without assumptions in sight is a
+ * number with the air of certainty, and §40 requires showing them.
  */
 export const forecastSchema = z.object({
   organizationId: idSchema,

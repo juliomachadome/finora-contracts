@@ -3,38 +3,39 @@ import { idSchema, isoDateTimeSchema, moneySchema } from './api.js'
 import { paymentProviderSchema, planTierSchema, subscriptionStatusSchema } from './enums.js'
 
 /**
- * Faturação (§78–§81).
+ * Billing (§78–§81).
  *
- * Dois princípios que moldam o modelo:
+ * Two principles that shape the model:
  *
- * 1. **Nunca cobrar IA por mensagem.** Cobrar por pergunta ensina o cliente a
- *    evitar a funcionalidade central. O modelo é limite por plano com consumo
- *    sempre à vista (§81).
+ * 1. **Never charge for AI per message.** Charging per question teaches the
+ *    client to avoid the central feature. The model is a per-plan limit with
+ *    consumption always in sight (§81).
  *
- * 2. **Segurança não é plano pago.** Cifragem, isolamento, audit log e o direito
- *    a exportar e apagar são iguais em todos os planos — o RGPD Art. 32 e a LGPD
- *    Art. 46 obrigam a medidas adequadas para todo o tratamento, e um plano "sem
- *    protecção" seria prova documentada de incumprimento. O que escala por preço
- *    é **soberania e controlo**: residência de dados, on-premise, BYOK, IA
- *    privada, SSO, retenção à medida. Ver `docs/SEGURANCA_E_PRIVACIDADE.md`.
+ * 2. **Security is not a paid plan.** Encryption, isolation, audit log and the
+ *    right to export and delete are the same on every plan — GDPR Art. 32 and
+ *    LGPD Art. 46 require adequate measures for all processing, and a plan
+ *    "without protection" would be documented proof of non-compliance. What
+ *    scales by price is **sovereignty and control**: data residency,
+ *    on-premise, BYOK, private AI, SSO, custom retention. See
+ *    `docs/SEGURANCA_E_PRIVACIDADE.md`.
  */
 
 /**
- * Limites por plano.
+ * Per-plan limits.
  *
- * `null` significa sem limite. Ultrapassar bloqueia a acção nova, nunca apaga
- * nem esconde dados já lá — perder acesso ao histórico por causa de faturação
- * seria reter dados do cliente como refém.
+ * `null` means no limit. Exceeding it blocks the new action, never deletes nor
+ * hides data already there — losing access to the history because of billing
+ * would be holding the client's data hostage.
  */
 export const planLimitsSchema = z.object({
   maxUsers: z.number().int().positive().nullable(),
   maxTransactions: z.number().int().positive().nullable(),
   maxOrganizations: z.number().int().positive().nullable(),
-  /** Cêntimos de consumo de IA incluídos por mês. */
+  /** Cents of AI consumption included per month. */
   aiMonthlyAllowanceCents: z.number().int().nonnegative().nullable(),
-  /** Deixa continuar acima do limite e cobra o excedente. */
+  /** Lets it carry on above the limit and charges the overage. */
   allowAIOverage: z.boolean(),
-  // Funcionalidades de soberania — o que legitimamente escala por preço
+  // Sovereignty features — what legitimately scales by price
   canUseBYOK: z.boolean(),
   canUseLocalAI: z.boolean(),
   canChooseDataRegion: z.boolean(),
@@ -48,7 +49,7 @@ export type PlanLimits = z.infer<typeof planLimitsSchema>
 export const planSchema = z.object({
   tier: planTierSchema,
   name: z.string(),
-  /** Cêntimos por mês. Configurável — o §80 exige preço não codificado. */
+  /** Cents per month. Configurable — §80 requires the price not be hard-coded. */
   monthlyPriceCents: z.number().int().nonnegative(),
   yearlyPriceCents: z.number().int().nonnegative(),
   currency: z.string().length(3),
@@ -84,7 +85,7 @@ export const checkoutSessionSchema = z.object({
 })
 export type CheckoutSession = z.infer<typeof checkoutSessionSchema>
 
-/** Consumo face aos limites, para o painel nunca esconder o gasto (§81). */
+/** Consumption against the limits, so the panel never hides the spend (§81). */
 export const usageSummarySchema = z.object({
   organizationId: idSchema,
   tier: planTierSchema,

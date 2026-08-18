@@ -4,72 +4,70 @@ import { ROLES, PERMISSIONS, ROLE_PERMISSIONS, type Permission } from '../src/en
 /**
  * RBAC.
  *
- * O mapa de permissões é fácil de alargar por descuido — alguém acrescenta uma
- * permissão nova e copia-a para todos os papéis "para não bloquear ninguém".
- * Estes testes existem para essa alteração falhar em vez de passar despercebida.
+ * The permission map is easy to widen by accident — someone adds a new permission
+ * and copies it to every role "so nobody gets blocked". These tests exist so that
+ * such a change fails instead of slipping through unnoticed.
  *
- * Isto é conveniência de UI. A autorização acontece sempre no servidor (§71):
- * o frontend esconde, não protege.
+ * This is UI convenience. Authorization always happens on the server (§71): the
+ * frontend hides, it does not protect.
  */
 
 describe('ROLE_PERMISSIONS', () => {
-  it('cobre todos os papéis', () => {
+  it('covers every role', () => {
     for (const role of ROLES) {
-      expect(ROLE_PERMISSIONS[role], `papel ${role} sem permissões definidas`).toBeDefined()
+      expect(ROLE_PERMISSIONS[role], `role ${role} has no permissions defined`).toBeDefined()
     }
   })
 
-  it('não concede nenhuma permissão que não exista', () => {
+  it('grants no permission that does not exist', () => {
     const known = new Set<string>(PERMISSIONS)
     for (const role of ROLES) {
       for (const permission of ROLE_PERMISSIONS[role]) {
-        expect(known.has(permission), `${role} tem permissão desconhecida: ${permission}`).toBe(
-          true,
-        )
+        expect(known.has(permission), `${role} has an unknown permission: ${permission}`).toBe(true)
       }
     }
   })
 
-  it('dá tudo ao OWNER', () => {
+  it('gives everything to OWNER', () => {
     expect([...ROLE_PERMISSIONS.OWNER].sort()).toEqual([...PERMISSIONS].sort())
   })
 
-  it('mantém o AUDITOR incapaz de alterar seja o que for', () => {
-    // Um auditor que escreve deixa de ser auditor. Se alguém acrescentar uma
-    // permissão de escrita nova, este teste tem de a apanhar — daí a lista ser
-    // derivada por padrão e não fixa.
-    const escrita = PERMISSIONS.filter(
+  it('keeps AUDITOR unable to change anything at all', () => {
+    // An auditor who writes stops being an auditor. If someone adds a new write
+    // permission, this test has to catch it — hence the list being derived by
+    // pattern rather than fixed.
+    const writes = PERMISSIONS.filter(
       (p) => p.startsWith('manage_') || p.startsWith('upload_') || p.startsWith('delete_'),
     )
-    for (const p of escrita) {
+    for (const p of writes) {
       expect(ROLE_PERMISSIONS.AUDITOR).not.toContain(p)
     }
   })
 
-  it('mantém o AUDITOR fora da IA', () => {
-    // Uma resposta gerada não é evidência auditável, e um auditor a citá-la como
-    // se fosse seria pior do que não ter a funcionalidade.
+  it('keeps AUDITOR out of the AI', () => {
+    // A generated answer is not auditable evidence, and an auditor quoting it as
+    // if it were would be worse than not having the feature.
     expect(ROLE_PERMISSIONS.AUDITOR).not.toContain('ask_ai' satisfies Permission)
   })
 
-  it('mantém o VIEWER sem exportar nem perguntar', () => {
+  it('keeps VIEWER from exporting or asking', () => {
     expect(ROLE_PERMISSIONS.VIEWER).not.toContain('export_reports' satisfies Permission)
     expect(ROLE_PERMISSIONS.VIEWER).not.toContain('ask_ai' satisfies Permission)
   })
 
-  it('só deixa OWNER e ADMIN gerir utilizadores', () => {
-    const podem = ROLES.filter((r) => ROLE_PERMISSIONS[r].includes('manage_users'))
-    expect(podem.sort()).toEqual(['ADMIN', 'OWNER'])
+  it('lets only OWNER and ADMIN manage users', () => {
+    const allowed = ROLES.filter((r) => ROLE_PERMISSIONS[r].includes('manage_users'))
+    expect(allowed.sort()).toEqual(['ADMIN', 'OWNER'])
   })
 
-  it('só deixa o OWNER mexer na faturação', () => {
-    const podem = ROLES.filter((r) => ROLE_PERMISSIONS[r].includes('manage_billing'))
-    expect(podem).toEqual(['OWNER'])
+  it('lets only OWNER touch billing', () => {
+    const allowed = ROLES.filter((r) => ROLE_PERMISSIONS[r].includes('manage_billing'))
+    expect(allowed).toEqual(['OWNER'])
   })
 
-  it('não deixa nenhum papel sem qualquer permissão', () => {
+  it('leaves no role without any permission', () => {
     for (const role of ROLES) {
-      expect(ROLE_PERMISSIONS[role].length, `papel ${role} ficou vazio`).toBeGreaterThan(0)
+      expect(ROLE_PERMISSIONS[role].length, `role ${role} ended up empty`).toBeGreaterThan(0)
     }
   })
 })

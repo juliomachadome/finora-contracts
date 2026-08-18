@@ -5,8 +5,8 @@ on:
     branches: [main]
   pull_request:
 
-# Um push novo cancela a corrida anterior do mesmo ramo: ninguém quer o
-# resultado de um commit que já foi substituído.
+# A new push cancels the previous run on the same branch: nobody wants the
+# result of a commit that has already been replaced.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -26,30 +26,30 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      # --frozen-lockfile falha se o lockfile não corresponder ao package.json.
-      # É o que impede uma dependência de escorregar para uma versão diferente da
-      # que foi testada localmente.
+      # --frozen-lockfile fails if the lockfile does not match package.json. It is
+      # what stops a dependency from slipping to a version other than the one
+      # tested locally.
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm verify
 
       - run: pnpm build
 
-      # O dist tem de existir: é o que uma dependência git entrega aos dois
-      # consumidores. Um build silenciosamente vazio partiria os dois repos.
-      - name: Confirmar que o build produziu artefactos
+      # dist has to exist: it is what a git dependency delivers to the two
+      # consumers. A silently empty build would break both repos.
+      - name: Check the build produced artefacts
         run: test -f dist/index.js && test -f dist/index.cjs && test -f dist/index.d.ts
 
-      # O `dist/` é versionado porque o pnpm 11 bloqueia scripts de instalação de
-      # dependências git. Isso cria um risco novo: alguém muda um schema, esquece
-      # de reconstruir, e os consumidores recebem o contrato antigo com o número
-      # de versão novo — a pior espécie de incompatibilidade, porque é silenciosa.
+      # `dist/` is versioned because pnpm 11 blocks install scripts of git
+      # dependencies. That creates a new risk: someone changes a schema, forgets to
+      # rebuild, and the consumers get the old contract under the new version
+      # number — the worst kind of incompatibility, because it is silent.
       #
-      # Este passo torna o esquecimento impossível: reconstrói e falha se o
-      # resultado diferir do que está no repositório.
-      - name: Confirmar que o dist está sincronizado com o src
+      # This step makes forgetting impossible: it rebuilds and fails if the result
+      # differs from what is in the repository.
+      - name: Check dist is in sync with src
         run: |
           if ! git diff --exit-code --stat -- dist; then
-            echo "::error::dist/ está desactualizado. Corra 'pnpm build' e faça commit do resultado."
+            echo "::error::dist/ is out of date. Run 'pnpm build' and commit the result."
             exit 1
           fi

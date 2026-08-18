@@ -2,10 +2,11 @@ node_modules/
 coverage/
 *.tsbuildinfo
 
-# `dist/` é versionado de propósito — ver .gitattributes e o CLAUDE.md.
-# O pnpm 11 bloqueia scripts de instalação de pacotes vindos de git, e a chave de
-# autorização inclui o SHA do commit, que muda a cada tag. Entregar o build já
-# feito é o que torna a dependência git utilizável no Vercel, no Railway e no CI.
+# `dist/` is versioned on purpose — see .gitattributes and CLAUDE.md.
+# pnpm 11 blocks install scripts of packages coming from git, and the
+# authorization key includes the commit SHA, which changes on every tag. Shipping
+# the build ready-made is what makes the git dependency usable on Vercel, on
+# Railway and in CI.
 
 .env
 .env.*

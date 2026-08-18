@@ -3,19 +3,19 @@ import { currencySchema, idSchema, isoDateTimeSchema } from './api.js'
 import { localeSchema, roleSchema } from './enums.js'
 
 /**
- * Organizações, membros e hierarquia de parceiros.
+ * Organizations, members and partner hierarchy.
  *
- * Estrutura (§69):
+ * Structure (§69):
  *
- *   Plataforma
- *    ├── Parceiro (firma de contabilidade)
- *    │    ├── Organização
- *    │    └── Organização
- *    └── Organização directa
+ *   Platform
+ *    ├── Partner (accounting firm)
+ *    │    ├── Organization
+ *    │    └── Organization
+ *    └── Direct organization
  *
- * O nível de parceiro existe no modelo desde o M0 mesmo sem UI: é o canal de
- * distribuição mais provável, e enxertar um nível de tenant depois obriga a
- * migrar todas as chaves estrangeiras da base.
+ * The partner level exists in the model since M0 even without a UI: it is the
+ * most likely distribution channel, and grafting on a tenant level later forces
+ * migrating every foreign key in the database.
  */
 
 export const organizationSchema = z.object({
@@ -25,9 +25,9 @@ export const organizationSchema = z.object({
   partnerId: idSchema.nullable(),
   baseCurrency: currencySchema,
   locale: localeSchema,
-  /** IANA, ex. `Europe/Lisbon`. Decide a que mês pertence uma transacção. */
+  /** IANA, e.g. `Europe/Lisbon`. Decides which month a transaction belongs to. */
   timezone: z.string(),
-  /** Mês em que começa o ano fiscal, 1–12. Nem toda a empresa fecha em Dezembro. */
+  /** Month the fiscal year starts in, 1–12. Not every company closes in December. */
   fiscalYearStartMonth: z.number().int().min(1).max(12),
   createdAt: isoDateTimeSchema,
 })
@@ -62,11 +62,11 @@ export const partnerSchema = z.object({
 export type Partner = z.infer<typeof partnerSchema>
 
 /**
- * Marca personalizável (§8, §101).
+ * Customizable brand (§8, §101).
  *
- * É a mesma peça que suporta a mudança de nome do produto: o `brand.ts` do
- * frontend define o padrão e isto sobrepõe-o por organização. Construir para o
- * rename constrói o white-label.
+ * It is the same piece that supports the product's name change: the frontend's
+ * `brand.ts` defines the default and this overrides it per organization.
+ * Building for the rename builds the white-label.
  */
 export const brandingConfigSchema = z.object({
   productName: z.string().max(60).nullable(),
@@ -81,12 +81,12 @@ export const brandingConfigSchema = z.object({
 export type BrandingConfig = z.infer<typeof brandingConfigSchema>
 
 /**
- * Definições de organização.
+ * Organization settings.
  *
- * `dataRetentionMonths` e `aiDataProcessingConsent` não são preferências de
- * conforto: são o cumprimento do §76 e a base legal para enviar seja o que for a
- * um provider de IA externo. Sem consentimento explícito, a organização só pode
- * usar provider local.
+ * `dataRetentionMonths` and `aiDataProcessingConsent` are not comfort
+ * preferences: they are compliance with §76 and the legal basis for sending
+ * anything at all to an external AI provider. Without explicit consent, the
+ * organization can only use a local provider.
  */
 export const organizationSettingsSchema = z.object({
   baseCurrency: currencySchema,
@@ -95,7 +95,7 @@ export const organizationSettingsSchema = z.object({
   fiscalYearStartMonth: z.number().int().min(1).max(12),
   dataRetentionMonths: z.number().int().min(1).max(120).nullable(),
   aiDataProcessingConsent: z.boolean(),
-  /** Pseudonimizar nomes ao detectar padrão de folha de salários na ingestão. */
+  /** Pseudonymize names when a payroll sheet pattern is detected on ingestion. */
   pseudonymizePayroll: z.boolean(),
   branding: brandingConfigSchema.nullable(),
 })

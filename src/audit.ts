@@ -2,19 +2,19 @@ import { z } from 'zod'
 import { idSchema, isoDateTimeSchema } from './api.js'
 
 /**
- * O registo de auditoria (§77).
+ * The audit log (§77).
  *
- * Append-only do lado do servidor: este contrato só descreve leitura, e é de
- * propósito que não existe schema de escrita nem de alteração — um registo que
- * se pode editar não é prova, e é como prova que ele existe.
+ * Append-only on the server side: this contract describes only reading, and it
+ * is on purpose that there is no write or update schema — a record that can be
+ * edited is not proof, and it is as proof that it exists.
  *
- * O `metadata` nunca transporta valores sensíveis: guarda o suficiente para
- * reconstruir o quê, quem e quando. Um registo que precise de ser tratado como
- * confidencial não se pode entregar a um auditor, o que anula a razão de existir.
+ * `metadata` never carries sensitive values: it keeps enough to reconstruct
+ * what, who and when. A record that has to be treated as confidential cannot be
+ * handed to an auditor, which cancels its reason to exist.
  */
 export const auditEventSchema = z.object({
   id: idSchema,
-  /** Verbo no passado, com pontos: `subscription.changed`, `auth.login`. */
+  /** Past-tense verb, dotted: `subscription.changed`, `auth.login`. */
   action: z.string(),
   resourceType: z.string().nullable(),
   resourceId: z.string().nullable(),

@@ -9,13 +9,13 @@ import {
 } from './enums.js'
 
 /**
- * Ingestão — do ficheiro à transacção normalizada.
+ * Ingestion — from the file to the normalized transaction.
  *
- *   Upload → validação → armazenamento → parsing → detecção de folha e coluna
- *   → mapeamento → normalização → validação → deduplicação → persistência
+ *   Upload → validation → storage → parsing → sheet and column detection
+ *   → mapping → normalization → validation → deduplication → persistence
  *
- * O pipeline é o mesmo venha o dado de um Excel ou de uma API (§98). O que muda
- * é só o conector que produz o lote.
+ * The pipeline is the same whether the data comes from an Excel or from an API
+ * (§98). All that changes is the connector that produces the batch.
  */
 
 export const datasetSchema = z.object({
@@ -23,11 +23,11 @@ export const datasetSchema = z.object({
   organizationId: idSchema,
   name: z.string(),
   /**
-   * Sobe a cada import concluído.
+   * Goes up on each completed import.
    *
-   * É a peça que torna os relatórios reproduzíveis (§46) e que invalida o cache
-   * de métricas por construção: chave nova, valores antigos deixam de ser lidos,
-   * sem invalidação manual — que é onde nascem os números errados em cache.
+   * It is the piece that makes reports reproducible (§46) and that invalidates
+   * the metrics cache by construction: new key, old values stop being read, with
+   * no manual invalidation — which is where wrong cached numbers are born.
    */
   version: z.number().int().positive(),
   transactionCount: z.number().int().nonnegative(),
@@ -45,12 +45,12 @@ export const importSchema = z.object({
   fileName: z.string(),
   fileSizeBytes: z.number().int().nonnegative(),
   /**
-   * SHA-256 do conteúdo.
+   * SHA-256 of the content.
    *
-   * Com `unique(organizationId, fileHash)` na base, carregar duas vezes o mesmo
-   * ficheiro é rejeitado pela constraint (§92). A verificação é a constraint, e
-   * não um `findFirst` antes do `create` — entre o ler e o escrever cabe outro
-   * pedido, e é assim que nascem duplicados em produção.
+   * With `unique(organizationId, fileHash)` in the database, uploading the same
+   * file twice is rejected by the constraint (§92). The check is the constraint,
+   * and not a `findFirst` before the `create` — between the read and the write
+   * another request fits, and that is how duplicates are born in production.
    */
   fileHash: z.string(),
   rowsTotal: z.number().int().nonnegative(),
@@ -62,7 +62,7 @@ export const importSchema = z.object({
 })
 export type Import = z.infer<typeof importSchema>
 
-/** Campos de destino que uma coluna pode alimentar. */
+/** Target fields a column can feed. */
 export const TARGET_FIELDS = [
   'date',
   'description',
@@ -80,17 +80,17 @@ export const targetFieldSchema = z.enum(TARGET_FIELDS)
 export type TargetField = z.infer<typeof targetFieldSchema>
 
 /**
- * Mapeamento de uma coluna do ficheiro para um campo do domínio (§27).
+ * Mapping of a column of the file to a domain field (§27).
  *
- * `confidence` alimenta a UI: acima de um limiar mostra-se pré-seleccionado com
- * visto; abaixo, pede-se confirmação. Mapear errado em silêncio é pior do que
- * perguntar.
+ * `confidence` feeds the UI: above a threshold it is shown preselected with a
+ * tick; below it, confirmation is asked for. Mapping wrongly in silence is worse
+ * than asking.
  */
 export const columnMappingSchema = z.object({
   sourceColumn: z.string(),
   targetField: targetFieldSchema,
   confidence: z.number().min(0).max(1),
-  /** Formato detectado, ex. `DD/MM/YYYY` ou `1.234,56`. */
+  /** Detected format, e.g. `DD/MM/YYYY` or `1.234,56`. */
   format: z.string().nullable(),
 })
 export type ColumnMapping = z.infer<typeof columnMappingSchema>
@@ -107,16 +107,17 @@ export const confirmMappingInputSchema = z.object({
   sheetName: z.string().nullable(),
   transactionType: transactionTypeSchema,
   columns: z.array(columnMappingSchema),
-  /** Pseudonimizar nomes quando a folha parece de salários. */
+  /** Pseudonymize names when the sheet looks like payroll. */
   pseudonymizeNames: z.boolean().default(false),
 })
 export type ConfirmMappingInput = z.infer<typeof confirmMappingInputSchema>
 
 /**
- * Problema encontrado nos dados (§30).
+ * Problem found in the data (§30).
  *
- * Guardado em vez de apenas contado: o utilizador tem de poder abrir "12
- * transacções duplicadas" e ver quais, senão o painel de qualidade é decoração.
+ * Stored rather than merely counted: the user has to be able to open "12
+ * duplicate transactions" and see which ones, otherwise the quality panel is
+ * decoration.
  */
 export const dataQualityIssueSchema = z.object({
   id: idSchema,
@@ -141,7 +142,7 @@ export type DataQualitySummary = z.infer<typeof dataQualitySummarySchema>
 export const importProgressSchema = z.object({
   importId: idSchema,
   state: importStateSchema,
-  /** 0–100. Estimativa; a UI mostra barra, não promessa de tempo. */
+  /** 0–100. An estimate; the UI shows a bar, not a promise of time. */
   progressPercent: z.number().min(0).max(100),
   message: z.string().nullable(),
 })

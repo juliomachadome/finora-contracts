@@ -11,40 +11,40 @@ import {
 import { customerStatusSchema, transactionTypeSchema } from './enums.js'
 
 /**
- * Núcleo financeiro.
+ * Financial core.
  *
- * Decisão de modelação: **uma tabela `Transaction` como facto único**, com
- * discriminador `type` e `customerId`/`supplierId` opcionais — em vez de tabelas
- * separadas para receita e despesa.
+ * Modelling decision: **a single `Transaction` table as the one fact**, with a
+ * `type` discriminator and optional `customerId`/`supplierId` — instead of
+ * separate tables for revenue and expense.
  *
- * Com tabelas separadas, cada métrica precisaria de duas queries e dois
- * conjuntos de índices, e o drill-down teria dois caminhos diferentes para o
- * mesmo gesto do utilizador. `Revenue` e `Expense` continuam a existir como
- * conceitos de domínio; só não são tabelas.
+ * With separate tables, each metric would need two queries and two sets of
+ * indexes, and the drill-down would have two different paths for the same user
+ * gesture. `Revenue` and `Expense` still exist as domain concepts; they just are
+ * not tables.
  */
 
 // ---------------------------------------------------------------------------
-// Linhagem — o que torna a promessa "podes conferir tudo" verificável
+// Lineage — what makes the "you can check everything" promise verifiable
 // ---------------------------------------------------------------------------
 
 /**
- * De onde veio esta linha, exactamente.
+ * Where this row came from, exactly.
  *
- * É o que permite ir de "a margem caiu 3,2pp" até "estas 47 linhas, do ficheiro
- * despesas_julho.xlsx, folha Marketing, linhas 142–189". Sem isto guardado no
- * momento da ingestão, não há como reconstruir depois.
+ * It is what makes it possible to go from "the margin fell 3.2pp" to "these 47
+ * rows, from the file despesas_julho.xlsx, sheet Marketing, rows 142–189".
+ * Without this stored at ingestion time, there is no way to reconstruct it later.
  */
 export const lineageRefSchema = z.object({
   importId: idSchema,
   fileName: z.string(),
   sheetName: z.string().nullable(),
-  /** Número da linha no ficheiro original, tal como o utilizador a vê no Excel. */
+  /** Row number in the original file, just as the user sees it in Excel. */
   rowNumber: z.number().int().positive().nullable(),
 })
 export type LineageRef = z.infer<typeof lineageRefSchema>
 
 // ---------------------------------------------------------------------------
-// Entidades
+// Entities
 // ---------------------------------------------------------------------------
 
 export const transactionSchema = z.object({
@@ -70,7 +70,7 @@ export const customerSchema = z.object({
   id: idSchema,
   organizationId: idSchema,
   name: z.string(),
-  /** Enriquecimento comercial (M8). Nulo enquanto ninguém preencher. */
+  /** Commercial enrichment (M8). Null until someone fills it in. */
   segment: z.string().nullable(),
   country: z.string().nullable(),
   status: customerStatusSchema,
@@ -98,7 +98,7 @@ export const categorySchema = z.object({
   organizationId: idSchema,
   name: z.string(),
   type: transactionTypeSchema,
-  /** Hierarquia rasa: uma categoria pode ter pai, o pai não tem avô. */
+  /** Shallow hierarchy: a category can have a parent, the parent has no grandparent. */
   parentId: idSchema.nullable(),
   createdAt: isoDateTimeSchema,
 })
@@ -116,7 +116,7 @@ export const budgetSchema = z.object({
 export type Budget = z.infer<typeof budgetSchema>
 
 // ---------------------------------------------------------------------------
-// Consultas
+// Queries
 // ---------------------------------------------------------------------------
 
 export const transactionFilterSchema = paginationQuerySchema.extend({
@@ -127,36 +127,36 @@ export const transactionFilterSchema = paginationQuerySchema.extend({
   supplierId: idSchema.optional(),
   categoryId: idSchema.optional(),
   importId: idSchema.optional(),
-  /** Pesquisa por descrição, cliente, fornecedor ou número de factura. */
+  /** Search by description, customer, supplier or invoice number. */
   search: z.string().max(200).optional(),
   minAmountCents: z.coerce.number().int().optional(),
   maxAmountCents: z.coerce.number().int().optional(),
   sortBy: z.enum(['date', 'amount', 'description']).default('date'),
   sortDir: z.enum(['asc', 'desc']).default('desc'),
   /**
-   * Salto para uma página numerada. Convive com o cursor, que continua a ser o
-   * caminho por omissão: um cursor diz onde continuar, não onde fica a página 7
-   * — e o explorador é onde alguém procura uma transacção de Março. O tecto de
-   * 200 mantém o custo do salto em milissegundos; para lá dele, filtra-se.
+   * Jump to a numbered page. Coexists with the cursor, which remains the default
+   * path: a cursor says where to continue, not where page 7 is — and the
+   * explorer is where someone looks for a transaction from March. The ceiling of
+   * 200 keeps the cost of the jump in milliseconds; beyond it, you filter.
    */
   page: z.coerce.number().int().min(1).max(200).optional(),
 })
 export type TransactionFilter = z.infer<typeof transactionFilterSchema>
 
-/** Agregado por dimensão — clientes, categorias, fornecedores. */
+/** Aggregate by dimension — customers, categories, suppliers. */
 export const breakdownItemSchema = z.object({
   id: idSchema.nullable(),
   label: z.string(),
   amount: moneySchema,
-  /** Peso no total do período, 0–100. */
+  /** Weight in the period total, 0–100. */
   sharePercent: z.number(),
-  /** Variação face ao período anterior; nulo quando não havia base. */
+  /** Variation against the previous period; null when there was no base. */
   changePercent: z.number().nullable(),
   transactionCount: z.number().int().nonnegative(),
 })
 export type BreakdownItem = z.infer<typeof breakdownItemSchema>
 
-/** Ponto de uma série temporal, para os gráficos do §66. */
+/** Point of a time series, for the charts of §66. */
 export const timeSeriesPointSchema = z.object({
   period: periodSchema,
   revenue: z.number().int(),

@@ -3,20 +3,20 @@ import { idSchema, isoDateTimeSchema } from './api.js'
 import { localeSchema, roleSchema, permissionSchema } from './enums.js'
 
 /**
- * Autenticação — JWT próprio, sem dependência de fornecedor.
+ * Authentication — our own JWT, with no supplier dependency.
  *
- * O §7.4 exige modo on-premise e o §113 proíbe o domínio conhecer Supabase.
- * Autenticação delegada a um SaaS quebraria os dois no ponto mais difícil de
- * mudar depois, que é a identidade.
+ * §7.4 requires an on-premise mode and §113 forbids the domain from knowing
+ * about Supabase. Authentication delegated to a SaaS would break both at the
+ * point that is hardest to change later, which is identity.
  */
 
 /**
- * Política de password.
+ * Password policy.
  *
- * Comprimento mínimo a sério em vez do teatro de "uma maiúscula e um símbolo":
- * as regras de composição empurram para `Password1!` e o NIST desaconselha-as há
- * anos. O que protege é comprimento e não ser uma password conhecida — a
- * verificação contra listas de fugas acontece no servidor, onde há como consultar.
+ * A serious minimum length instead of the "one capital and one symbol" theatre:
+ * composition rules push towards `Password1!` and NIST has advised against them
+ * for years. What protects is length and not being a known password — the check
+ * against breach lists happens on the server, where there is a way to look it up.
  */
 export const PASSWORD_MIN_LENGTH = 12
 export const passwordSchema = z
@@ -30,7 +30,7 @@ export const signupInputSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
   name: z.string().min(1).max(120).trim(),
-  /** Criada no mesmo passo: uma conta sem organização não faz nada. */
+  /** Created in the same step: an account without an organization does nothing. */
   organizationName: z.string().min(1).max(160).trim(),
   locale: localeSchema.optional(),
   acceptedTermsAt: isoDateTimeSchema,
@@ -60,16 +60,17 @@ export const resetPasswordInputSchema = z.object({
 export type ResetPasswordInput = z.infer<typeof resetPasswordInputSchema>
 
 /**
- * Par de tokens.
+ * Token pair.
  *
- * O refresh é rotativo: cada uso emite um novo e invalida o anterior. Se um
- * token já usado reaparecer, é sinal de que foi roubado — nesse caso cai toda a
- * família de tokens daquela sessão, não só o repetido.
+ * The refresh is rotating: each use issues a new one and invalidates the
+ * previous. If an already used token reappears, it is a sign that it was stolen
+ * — in that case the whole token family of that session falls, not just the
+ * repeated one.
  */
 export const tokenPairSchema = z.object({
   accessToken: z.string(),
   refreshToken: z.string(),
-  /** Segundos até o access expirar. O cliente renova antes, não depois de falhar. */
+  /** Seconds until the access expires. The client renews before, not after failing. */
   expiresIn: z.number().int().positive(),
 })
 export type TokenPair = z.infer<typeof tokenPairSchema>
@@ -85,10 +86,10 @@ export const sessionOrganizationSchema = z.object({
 export type SessionOrganization = z.infer<typeof sessionOrganizationSchema>
 
 /**
- * Utilizador da sessão.
+ * Session user.
  *
- * Nunca transporta hash de password, tokens nem qualquer campo S3 — este objecto
- * vai para o frontend e para o estado do cliente.
+ * Never carries a password hash, tokens nor any S3 field — this object goes to
+ * the frontend and into the client state.
  */
 export const sessionUserSchema = z.object({
   id: idSchema,

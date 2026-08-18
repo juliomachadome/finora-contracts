@@ -9,24 +9,24 @@ import {
 import { activityTypeSchema, leadStatusSchema, opportunityStageSchema } from './enums.js'
 
 /**
- * Contexto comercial — CRM leve.
+ * Commercial context — lightweight CRM.
  *
- * O §1.1 do PRD declara que o produto não é um CRM. Isto estende esse âmbito
- * por decisão explícita, e por isso fica em contexto próprio, com milestone
- * próprio (M8), depois de a promessa financeira estar entregue.
+ * §1.1 of the PRD states that the product is not a CRM. This extends that scope
+ * by an explicit decision, and for that reason it stays in its own context, with
+ * its own milestone (M8), after the financial promise has been delivered.
  *
- * O que o impede de ser um CRM medíocre colado ao lado de um produto financeiro
- * bom são os laços ao financeiro:
+ * What stops it from being a mediocre CRM glued next to a good financial product
+ * are the ties to the financial side:
  *
- *   - oportunidade ganha confrontada com a receita real do cliente;
- *   - pipeline ponderado (`value × probability`) como nó do grafo de forecast;
- *   - detectores de churn e renovação a alimentar os insights;
- *   - contexto comercial nas respostas da IA — "o cliente caiu 18% e tem
- *     renovação a 30 dias sem oportunidade aberta".
+ *   - a won opportunity confronted with the client's real revenue;
+ *   - weighted pipeline (`value × probability`) as a node of the forecast graph;
+ *   - churn and renewal detectors feeding the insights;
+ *   - commercial context in the AI answers — "the client dropped 18% and has a
+ *     renewal in 30 days with no open opportunity".
  *
- * Aviso de privacidade: leads e contactos são **dados pessoais de terceiros**
- * (classe S2). O cliente é o responsável pelo tratamento e pela base legal;
- * nós somos subcontratante. Ver `docs/SEGURANCA_E_PRIVACIDADE.md`.
+ * Privacy notice: leads and contacts are **personal data of third parties**
+ * (class S2). The client is the controller and holds the legal basis; we are the
+ * processor. See `docs/SEGURANCA_E_PRIVACIDADE.md`.
  */
 
 export const leadSchema = z.object({
@@ -43,12 +43,12 @@ export const leadSchema = z.object({
   ownerName: z.string().nullable(),
   convertedToCustomerId: idSchema.nullable(),
   /**
-   * A versão do bloqueio optimista, e viaja na leitura de propósito.
+   * The optimistic locking version, and it travels on the read on purpose.
    *
-   * As rotas de escrita exigem a versão que se leu — sem ela na resposta, um
-   * cliente honesto só pode adivinhar: manda zero, funciona no primeiro lead e
-   * falha em todos os que já foram tocados. Um bloqueio que o consumidor não
-   * consegue satisfazer não é segurança, é uma funcionalidade partida.
+   * The write routes require the version that was read — without it in the
+   * response, an honest client can only guess: it sends zero, works on the first
+   * lead and fails on every one that has already been touched. A lock the
+   * consumer cannot satisfy is not security, it is a broken feature.
    */
   version: z.number().int().nonnegative(),
   createdAt: isoDateTimeSchema,
@@ -64,7 +64,7 @@ export const opportunitySchema = z.object({
   title: z.string(),
   stage: opportunityStageSchema,
   value: moneySchema,
-  /** 0–100. Multiplicada pelo valor dá o pipeline ponderado do forecast (§40). */
+  /** 0–100. Multiplied by the value it gives the forecast's weighted pipeline (§40). */
   probability: z.number().min(0).max(100),
   expectedCloseDate: isoDateSchema.nullable(),
   closedAt: isoDateTimeSchema.nullable(),
@@ -76,7 +76,7 @@ export const opportunitySchema = z.object({
 })
 export type Opportunity = z.infer<typeof opportunitySchema>
 
-/** Alvo de uma actividade. Polimórfico para não haver três tabelas iguais. */
+/** Target of an activity. Polymorphic so there are not three identical tables. */
 export const ACTIVITY_SUBJECTS = ['LEAD', 'CUSTOMER', 'OPPORTUNITY'] as const
 export const activitySubjectSchema = z.enum(ACTIVITY_SUBJECTS)
 export type ActivitySubject = z.infer<typeof activitySubjectSchema>
@@ -96,7 +96,7 @@ export const activitySchema = z.object({
 })
 export type Activity = z.infer<typeof activitySchema>
 
-/** Resumo do pipeline por estágio, para o funil e para o forecast. */
+/** Pipeline summary by stage, for the funnel and for the forecast. */
 export const pipelineSummarySchema = z.object({
   stages: z.array(
     z.object({
@@ -111,7 +111,7 @@ export const pipelineSummarySchema = z.object({
 export type PipelineSummary = z.infer<typeof pipelineSummarySchema>
 
 // ---------------------------------------------------------------------------
-// Escrita
+// Writing
 // ---------------------------------------------------------------------------
 
 export const createLeadInputSchema = z.object({

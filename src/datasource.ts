@@ -7,18 +7,18 @@ import {
 } from './enums.js'
 
 /**
- * Fontes de dados (§98).
+ * Data sources (§98).
  *
- * A regra que decide se ligar um Xero daqui a seis meses é *um adapter* ou *uma
- * reescrita*: **nenhuma fonte fala directamente com a normalização**. Todas
- * terminam no mesmo `RawBatch` e entram no pipeline idêntico.
+ * The rule that decides whether plugging in a Xero six months from now is *an
+ * adapter* or *a rewrite*: **no source talks directly to normalization**. They
+ * all end in the same `RawBatch` and enter the identical pipeline.
  *
  *   FileUpload ─┐
- *   Xero ───────┼─→ RawBatch ─→ Mapping ─→ Normalização ─→ Validação ─→ Dedup
+ *   Xero ───────┼─→ RawBatch ─→ Mapping ─→ Normalization ─→ Validation ─→ Dedup
  *   OpenBanking ┘
  *
- * No M0 só existe o conector de ficheiro. Os outros estão no enum sem
- * implementação (§107) — é o que garante que cabem sem migração.
+ * In M0 only the file connector exists. The others are in the enum without an
+ * implementation (§107) — that is what guarantees they fit without a migration.
  */
 
 export const dataSourceSchema = z.object({
@@ -28,11 +28,11 @@ export const dataSourceSchema = z.object({
   name: z.string(),
   capabilities: z.array(connectorCapabilitySchema),
   /**
-   * Configuração não secreta: endpoint, id de empresa remota, filtros.
-   * As credenciais nunca vivem aqui — vivem cifradas e nunca saem do backend.
+   * Non-secret configuration: endpoint, remote company id, filters.
+   * Credentials never live here — they live encrypted and never leave the backend.
    */
   config: z.record(z.string(), z.unknown()),
-  /** Nunca `true` para o frontend saber a chave; só se ela existe. */
+  /** Never `true` so the frontend knows the key; only whether it exists. */
   hasCredentials: z.boolean(),
   lastSyncAt: isoDateTimeSchema.nullable(),
   lastSyncError: z.string().nullable(),
@@ -41,45 +41,46 @@ export const dataSourceSchema = z.object({
 export type DataSource = z.infer<typeof dataSourceSchema>
 
 /**
- * Cursor de sincronização incremental.
+ * Incremental synchronization cursor.
  *
- * Existe no M0 sem ninguém o usar porque acrescentá-lo depois obriga a
- * reprocessar histórico para descobrir onde se ficou.
+ * Exists in M0 without anyone using it because adding it later forces
+ * reprocessing history to find out where things stopped.
  */
 export const syncCursorSchema = z.object({
-  /** Marca de água do fornecedor: timestamp, id sequencial ou token opaco. */
+  /** Supplier watermark: timestamp, sequential id or opaque token. */
   value: z.string(),
   updatedAt: isoDateTimeSchema,
 })
 export type SyncCursor = z.infer<typeof syncCursorSchema>
 
 /**
- * Estrutura descoberta na origem.
+ * Structure discovered at the source.
  *
- * Um ficheiro devolve folhas e colunas; uma API devolve entidades e campos. A
- * mesma forma nos dois casos é o que permite à UI de mapeamento (§27) ser uma só.
+ * A file returns sheets and columns; an API returns entities and fields. The
+ * same shape in both cases is what lets the mapping UI (§27) be a single one.
  */
 export const discoveredFieldSchema = z.object({
   name: z.string(),
-  /** Tipo inferido da amostra, não declarado. Excel mente sobre tipos. */
+  /** Type inferred from the sample, not declared. Excel lies about types. */
   inferredType: z.enum(['date', 'number', 'string', 'boolean', 'empty', 'mixed']),
-  /** Primeiras linhas, para o utilizador reconhecer a coluna ao mapear. */
+  /** First rows, for the user to recognize the column when mapping. */
   sampleValues: z.array(z.string()),
   nullRatio: z.number().min(0).max(1),
 })
 export type DiscoveredField = z.infer<typeof discoveredFieldSchema>
 
 export const discoveredEntitySchema = z.object({
-  /** Nome da folha, tabela ou entidade remota. */
+  /** Name of the sheet, table or remote entity. */
   name: z.string(),
   rowCount: z.number().int().nonnegative(),
   fields: z.array(discoveredFieldSchema),
   /**
-   * Sinalizado quando as colunas parecem folha de salários.
+   * Flagged when the columns look like a payroll sheet.
    *
-   * É o ficheiro com salário associado a pessoa identificada — dado pessoal de
-   * terceiros e a razão nº1 para um CFO não carregar nada. Detectar permite
-   * oferecer pseudonimização antes de persistir, em vez de descobrir depois.
+   * It is the file with a salary tied to an identified person — personal data of
+   * third parties and the number one reason for a CFO not to upload anything.
+   * Detecting it allows offering pseudonymization before persisting, instead of
+   * finding out afterwards.
    */
   suspectedPayroll: z.boolean(),
 })
@@ -98,14 +99,14 @@ export const connectionHealthSchema = z.object({
 export type ConnectionHealth = z.infer<typeof connectionHealthSchema>
 
 /**
- * Configuração de provider de IA por organização (§12 BYOK).
+ * AI provider configuration per organization (§12 BYOK).
  *
- * A chave nunca é devolvida — só a máscara (`sk-…4f2a`), que chega para o
- * utilizador reconhecer qual configurou.
+ * The key is never returned — only the mask (`sk-…4f2a`), which is enough for
+ * the user to recognize which one they configured.
  *
- * `retentionPolicy` existe porque alguns providers treinam com dados da API
- * consoante o tier, e uma chave mal escolhida põe dados financeiros de cliente
- * num corpus de treino, o que não se desfaz. A UI sinaliza antes do uso.
+ * `retentionPolicy` exists because some providers train on API data depending on
+ * the tier, and a badly chosen key puts a client's financial data into a
+ * training corpus, which cannot be undone. The UI flags it before use.
  */
 export const aiProviderConfigSchema = z.object({
   id: idSchema,
@@ -116,7 +117,7 @@ export const aiProviderConfigSchema = z.object({
   apiKeyMask: z.string().nullable(),
   embeddingModel: z.string().nullable(),
   retentionPolicy: aiRetentionPolicySchema,
-  /** Falso quando o endpoint sai da máquina ou da região do cliente. */
+  /** False when the endpoint leaves the client's machine or region. */
   dataStaysLocal: z.boolean(),
   isActive: z.boolean(),
   createdAt: isoDateTimeSchema,
@@ -127,7 +128,7 @@ export const upsertAIProviderConfigInputSchema = z.object({
   kind: z.string(),
   model: z.string().min(1),
   baseUrl: z.string().url().nullable().optional(),
-  /** Só na escrita. Nunca volta numa leitura. */
+  /** Only on the write. Never comes back on a read. */
   apiKey: z.string().min(1).nullable().optional(),
   embeddingModel: z.string().nullable().optional(),
   retentionPolicy: aiRetentionPolicySchema.optional(),

@@ -4,23 +4,23 @@ import { lineageRefSchema } from './financial.js'
 import { metricIdSchema } from './metrics.js'
 
 /**
- * Evidência — a peça que sustenta a promessa do produto.
+ * Evidence — the piece that holds up the product's promise.
  *
- * Todas as ferramentas de IA financeira dão uma resposta. Esta deixa verificá-la.
- * O caminho tem de ser sempre percorrível:
+ * Every financial AI tool gives an answer. This one lets you verify it. The path
+ * always has to be walkable:
  *
- *   conclusão → cálculo → métrica → entidade → transacção → ficheiro → linha
+ *   conclusion → calculation → metric → entity → transaction → file → row
  *
- * Sem isto, o produto é indistinguível de um LLM com um Excel — e o utilizador
- * não tem como apanhar o erro, que é exactamente o valor que se vende.
+ * Without this, the product is indistinguishable from an LLM with an Excel — and
+ * the user has no way to catch the error, which is exactly the value being sold.
  */
 
 /**
- * Como um número foi obtido.
+ * How a number was obtained.
  *
- * `inputs` são os valores que entraram, `formula` é o que se fez com eles.
- * Mostrado no painel de evidência para o utilizador refazer a conta de cabeça se
- * quiser — e é isso que constrói confiança, não a promessa de que está certo.
+ * `inputs` are the values that went in, `formula` is what was done with them.
+ * Shown in the evidence panel for the user to redo the sum in their head if they
+ * want — and that is what builds trust, not the promise that it is right.
  */
 export const calculationSchema = z.object({
   metricId: metricIdSchema,
@@ -37,7 +37,7 @@ export const calculationSchema = z.object({
 })
 export type Calculation = z.infer<typeof calculationSchema>
 
-/** Transacção citada como prova, com a linha original de onde saiu. */
+/** Transaction cited as proof, with the original row it came from. */
 export const evidenceTransactionSchema = z.object({
   id: idSchema,
   date: z.string(),
@@ -49,12 +49,12 @@ export const evidenceTransactionSchema = z.object({
 export type EvidenceTransaction = z.infer<typeof evidenceTransactionSchema>
 
 /**
- * Pacote de evidência de uma afirmação.
+ * Evidence bundle for a statement.
  *
- * `transactionCount` e `sampleTransactions` existem separados de propósito: uma
- * afirmação pode assentar em milhares de linhas, e devolvê-las todas seria
- * inútil para o utilizador e caro para a base. Mostra-se a contagem real e uma
- * amostra, com caminho para ver o resto no explorador.
+ * `transactionCount` and `sampleTransactions` exist separately on purpose: a
+ * statement can rest on thousands of rows, and returning them all would be
+ * useless for the user and expensive for the database. The real count and a
+ * sample are shown, with a path to see the rest in the explorer.
  */
 export const evidenceSchema = z.object({
   id: idSchema,
@@ -62,7 +62,7 @@ export const evidenceSchema = z.object({
   calculations: z.array(calculationSchema),
   transactionCount: z.number().int().nonnegative(),
   sampleTransactions: z.array(evidenceTransactionSchema),
-  /** Ficheiros que contribuíram, para o utilizador reconhecer a origem. */
+  /** Files that contributed, for the user to recognize the origin. */
   sources: z.array(
     z.object({
       importId: idSchema,

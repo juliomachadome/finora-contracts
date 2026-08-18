@@ -8,10 +8,10 @@ import { passwordSchema, PASSWORD_MIN_LENGTH, sessionUserSchema } from '../src/a
 import { changeItemSchema, insightFilterSchema, insightSchema } from '../src/insight.js'
 
 describe('varianceTreeSchema', () => {
-  it('aceita a árvore recursiva do §24', () => {
-    // "Porquê?" repete-se: o lucro caiu por causa das despesas, as despesas por
-    // causa do marketing, o marketing por causa de três facturas. O schema tem de
-    // aguentar essa recursão sem profundidade fixa.
+  it('accepts the recursive tree from §24', () => {
+    // "Why?" repeats itself: profit fell because of expenses, expenses because of
+    // marketing, marketing because of three invoices. The schema has to survive
+    // that recursion without a fixed depth.
     const tree = {
       label: 'Profit',
       metricId: 'OPERATING_PROFIT' as const,
@@ -46,15 +46,15 @@ describe('varianceTreeSchema', () => {
 })
 
 describe('createOpportunityInputSchema', () => {
-  it('exige cliente ou lead', () => {
-    // Uma oportunidade órfã não se consegue confrontar com receita real, que é a
-    // única razão para o CRM viver dentro de um produto financeiro.
+  it('requires a customer or a lead', () => {
+    // An orphan opportunity cannot be confronted with real revenue, which is the
+    // only reason for the CRM to live inside a financial product.
     expect(() =>
       createOpportunityInputSchema.parse({ title: 'Renovação', valueCents: 500000 }),
     ).toThrow()
   })
 
-  it('aceita com cliente', () => {
+  it('accepts one with a customer', () => {
     const o = createOpportunityInputSchema.parse({
       customerId: '3f1b2c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d',
       title: 'Renovação',
@@ -64,7 +64,7 @@ describe('createOpportunityInputSchema', () => {
     expect(o.stage).toBe('DISCOVERY')
   })
 
-  it('rejeita probabilidade fora de 0–100', () => {
+  it('rejects a probability outside 0–100', () => {
     expect(() =>
       createOpportunityInputSchema.parse({
         leadId: '3f1b2c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d',
@@ -77,10 +77,10 @@ describe('createOpportunityInputSchema', () => {
 })
 
 describe('aiAnswerSchema', () => {
-  it('exige insufficientData explícito', () => {
-    // O §21 obriga a IA a dizer quando os dados não chegam, em vez de preencher o
-    // vazio com algo plausível. Campo obrigatório é o que torna isso estrutural
-    // em vez de dependente do prompt.
+  it('requires an explicit insufficientData', () => {
+    // §21 forces the AI to say when the data is not enough, instead of filling the
+    // gap with something plausible. A required field is what makes that structural
+    // rather than dependent on the prompt.
     const base = {
       answer: 'A margem caiu 3,2pp.',
       keyPoints: [],
@@ -94,9 +94,9 @@ describe('aiAnswerSchema', () => {
     expect(aiAnswerSchema.parse({ ...base, insufficientData: false }).insufficientData).toBe(false)
   })
 
-  it('obriga cada keyPoint a declarar o tipo de afirmação', () => {
-    // Separar facto de inferência (§20) é o que impede uma suposição plausível de
-    // herdar a autoridade de um dado auditado.
+  it('makes every keyPoint declare the kind of claim it is', () => {
+    // Separating fact from inference (§20) is what stops a plausible guess from
+    // inheriting the authority of an audited figure.
     expect(() =>
       aiAnswerSchema.parse({
         answer: 'x',
@@ -113,63 +113,64 @@ describe('aiAnswerSchema', () => {
 })
 
 describe('locales', () => {
-  it('trata português de Portugal e do Brasil como locales distintos', () => {
-    // facturação/faturamento, IVA/ICMS, tesouraria/caixa. Uma tradução só soa a
-    // estrangeiro nos dois mercados.
+  it('treats European and Brazilian Portuguese as distinct locales', () => {
+    // facturação/faturamento, IVA/ICMS, tesouraria/caixa. A single translation
+    // sounds foreign in both markets.
     expect(LOCALES).toContain('pt-PT')
     expect(LOCALES).toContain('pt-BR')
   })
 
-  it('cobre os quatro mercados iniciais', () => {
+  it('covers the four initial markets', () => {
     expect([...LOCALES].sort()).toEqual(['en', 'es', 'pt-BR', 'pt-PT'])
   })
 })
 
 describe('paginationQuerySchema', () => {
-  it('impõe tecto ao limite pedido', () => {
-    // Sem tecto, um cliente pede limit=1000000 e transforma uma listagem numa
-    // exportação acidental da base.
+  it('caps the requested limit', () => {
+    // Without a cap, a client asks for limit=1000000 and turns a listing into an
+    // accidental export of the database.
     expect(() => paginationQuerySchema.parse({ limit: 5000 })).toThrow()
   })
 
-  it('assume 50 por omissão', () => {
+  it('defaults to 50', () => {
     expect(paginationQuerySchema.parse({}).limit).toBe(50)
   })
 
-  it('aceita limite vindo como string de query', () => {
+  it('accepts a limit arriving as a query string', () => {
     expect(paginationQuerySchema.parse({ limit: '25' }).limit).toBe(25)
   })
 })
 
 describe('passwordSchema', () => {
-  it(`exige ${PASSWORD_MIN_LENGTH} caracteres`, () => {
-    // Comprimento em vez do teatro de "uma maiúscula e um símbolo", que empurra
-    // para Password1! e é desaconselhado pelo NIST há anos.
+  it(`requires ${PASSWORD_MIN_LENGTH} characters`, () => {
+    // Length instead of the "one capital and one symbol" theatre, which pushes
+    // people to Password1! and has been advised against by NIST for years.
     expect(() => passwordSchema.parse('curta1!')).toThrow()
     expect(passwordSchema.parse('uma frase razoavelmente longa')).toBeTruthy()
   })
 })
 
 describe('sessionUserSchema', () => {
-  it('não tem onde transportar segredo', () => {
-    // Este objecto vai para o frontend e para o estado do cliente. Um campo de
-    // hash ou token aqui seria fuga com aparência de funcionalidade.
-    const chaves = Object.keys(sessionUserSchema.shape)
-    for (const proibida of ['password', 'passwordHash', 'refreshToken', 'apiKey']) {
-      expect(chaves).not.toContain(proibida)
+  it('has nowhere to carry a secret', () => {
+    // This object goes to the frontend and into client state. A hash or token
+    // field here would be a leak with the appearance of a feature.
+    const keys = Object.keys(sessionUserSchema.shape)
+    for (const forbidden of ['password', 'passwordHash', 'refreshToken', 'apiKey']) {
+      expect(keys).not.toContain(forbidden)
     }
   })
 })
 
-describe('classificação de dados', () => {
-  it('mantém as quatro classes', () => {
-    // Alimenta a lista de redacção do logger, a cifragem e o que chega à IA.
+describe('data classification', () => {
+  it('keeps the four classes', () => {
+    // Feeds the logger redaction list, the encryption and what reaches the AI.
     expect([...DATA_CLASSES]).toEqual(['S0', 'S1', 'S2', 'S3'])
   })
 
-  it('prevê o caso do provider que treina com dados da API', () => {
-    // Ligar a chave errada põe dados de cliente num corpus de treino, e isso não
-    // se desfaz. Tem de ser representável para a UI sinalizar antes do uso.
+  it('allows for the provider that trains on API data', () => {
+    // Plugging in the wrong key puts customer data into a training corpus, and
+    // that cannot be undone. It has to be representable so the UI can flag it
+    // before use.
     expect(AI_RETENTION_POLICIES).toContain('TRAINS_ON_DATA')
     expect(AI_RETENTION_POLICIES).toContain('UNKNOWN')
   })
@@ -194,45 +195,45 @@ describe('insightSchema', () => {
     createdAt: '2026-08-09T15:00:00.000Z',
   }
 
-  it('transporta chaves de tradução, não frases', () => {
-    // Traduzir no servidor obrigava-o a um segundo catálogo em quatro idiomas.
-    // O detector decide o que é anómalo; quem redige é o frontend.
+  it('carries translation keys, not sentences', () => {
+    // Translating on the server would force a second catalogue in four languages.
+    // The detector decides what is anomalous; the frontend does the wording.
     const parsed = insightSchema.parse(insight)
     expect(parsed.titleKey).toContain('.')
     expect(Object.keys(insightSchema.shape)).not.toContain('title')
     expect(Object.keys(insightSchema.shape)).not.toContain('description')
   })
 
-  it('aceita uma lista de nomes como array, e não já unida', () => {
-    // O separador de lista muda com o idioma — " e ", " y ", vírgula antes do
-    // "and". Uni-la no servidor seria escrever português na API.
+  it('accepts a list of names as an array, not already joined', () => {
+    // The list separator changes with the language — " e ", " y ", comma before
+    // the "and". Joining it on the server would be writing Portuguese into the API.
     const parsed = insightSchema.parse(insight)
     expect(parsed.params.names).toEqual(['Vega Partners SA'])
   })
 
-  it('guarda o endereço da prova, que é também o destino do clique', () => {
-    // Se o painel de evidência mostrasse linhas diferentes das que o clique
-    // abre, o produto estaria a mentir no sítio onde promete não mentir.
+  it('keeps the address of the proof, which is also where the click goes', () => {
+    // If the evidence panel showed rows other than the ones the click opens, the
+    // product would be lying in the very place where it promises not to.
     const parsed = insightSchema.parse(insight)
     expect(parsed.metricId).toBe('REVENUE')
     expect(parsed.dimension).toBe('customer')
     expect(parsed.entityId).toBeTruthy()
   })
 
-  it('não repete o tenant em cada linha', () => {
-    // A organização é implícita na sessão e o cliente não pode escolhê-la.
+  it('does not repeat the tenant on every row', () => {
+    // The organization is implicit in the session and the client cannot choose it.
     expect(Object.keys(insightSchema.shape)).not.toContain('organizationId')
   })
 
-  it('recusa um insight sem gravidade conhecida', () => {
+  it('refuses an insight without a known severity', () => {
     expect(() => insightSchema.parse({ ...insight, severity: 'URGENTE' })).toThrow()
   })
 })
 
 describe('insightFilterSchema', () => {
-  it('lê "false" como falso', () => {
-    // `z.coerce.boolean()` faria `Boolean("false")`, que é `true`. Armadilha já
-    // paga uma vez neste projecto.
+  it('reads "false" as false', () => {
+    // `z.coerce.boolean()` would do `Boolean("false")`, which is `true`. A trap
+    // already paid for once in this project.
     expect(insightFilterSchema.parse({ includeDismissed: 'false' }).includeDismissed).toBe(false)
     expect(insightFilterSchema.parse({ includeDismissed: 'true' }).includeDismissed).toBe(true)
     expect(insightFilterSchema.parse({}).includeDismissed).toBe(false)
@@ -240,11 +241,11 @@ describe('insightFilterSchema', () => {
 })
 
 describe('changeItemSchema', () => {
-  it('separa pontos percentuais de percentagem', () => {
-    // Uma margem de 40% que passa a 42% subiu 2pp. Dizer "+5%" é verdade sobre o
-    // rácio e enganador sobre o negócio — a confusão mais comum em relatórios
-    // financeiros, e a que este produto não pode cometer.
-    const margem = changeItemSchema.parse({
+  it('separates percentage points from percentage', () => {
+    // A margin of 40% that becomes 42% rose 2pp. Saying "+5%" is true about the
+    // ratio and misleading about the business — the commonest confusion in
+    // financial reports, and the one this product cannot make.
+    const margin = changeItemSchema.parse({
       metricId: 'GROSS_MARGIN',
       unit: 'PERCENT',
       actual: 58.5,
@@ -254,7 +255,7 @@ describe('changeItemSchema', () => {
       direction: 'down',
       sentiment: 'negative',
     })
-    expect(margem.changePercent).toBeNull()
-    expect(margem.changePoints).toBe(-2.4)
+    expect(margin.changePercent).toBeNull()
+    expect(margin.changePoints).toBe(-2.4)
   })
 })

@@ -61,14 +61,15 @@ var ROLE_PERMISSIONS = {
   ],
   ANALYST: ["view_financials", "ask_ai", "run_scenarios", "export_reports", "view_crm"],
   VIEWER: ["view_financials", "view_crm"],
-  // O auditor vê tudo o que é histórico e não altera nada — nem sequer pergunta
-  // à IA, porque uma resposta gerada não é evidência auditável.
+  // The auditor sees everything that is historical and changes nothing — does
+  // not even ask the AI, because a generated answer is not auditable evidence.
   AUDITOR: ["view_financials", "view_audit_logs", "export_reports"]
 };
 var DATA_SOURCE_KINDS = [
   "FILE_UPLOAD",
-  // Declarados agora, implementados quando houver procura (§98, §107).
-  // Estar no enum é o que garante que a arquitectura os acomoda sem migração.
+  // Declared now, implemented when there is demand (§98, §107).
+  // Being in the enum is what guarantees the architecture accommodates them
+  // without a migration.
   "XERO",
   "QUICKBOOKS",
   "SAGE",
@@ -134,12 +135,12 @@ var SEVERITIES = ["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"];
 var severitySchema = z.enum(SEVERITIES);
 var AI_PROVIDER_KINDS = [
   "mock",
-  // Um único adapter serve tudo o que fala o protocolo OpenAI: OpenAI, Ollama,
-  // vLLM, LM Studio, Groq, OpenRouter, DeepSeek, Mistral, xAI e o gateway de IA
-  // do cliente (§13).
+  // A single adapter serves everything that speaks the OpenAI protocol: OpenAI,
+  // Ollama, vLLM, LM Studio, Groq, OpenRouter, DeepSeek, Mistral, xAI and the
+  // client's own AI gateway (§13).
   "openai-compatible",
-  // Adapters nativos, para aproveitar tool calling, structured output e caching
-  // próprios (M7).
+  // Native adapters, to take advantage of their own tool calling, structured
+  // output and caching (M7).
   "gemini",
   "anthropic"
 ];
@@ -234,7 +235,7 @@ var isoDateSchema = z.iso.date();
 var periodSchema = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "per\xEDodo tem de ser YYYY-MM");
 var currencySchema = z.string().length(3).toUpperCase();
 var moneySchema = z.object({
-  /** Inteiro em cêntimos. 1234 = 12,34. Negativo é permitido (estornos). */
+  /** Integer in cents. 1234 = 12.34. Negative is allowed (refunds). */
   amountCents: z.number().int(),
   currency: currencySchema
 });
@@ -244,14 +245,14 @@ var deltaSchema = z.object({
   previous: z.number(),
   changeAbsolute: z.number(),
   changePercent: z.number().nullable(),
-  /** Para margens, em pontos percentuais. 2.8 = +2,8pp. */
+  /** For margins, in percentage points. 2.8 = +2.8pp. */
   changePoints: z.number().nullable().optional()
 });
 var apiErrorSchema = z.object({
   code: z.string(),
   message: z.string(),
   details: z.record(z.string(), z.array(z.string())).optional(),
-  /** Para o utilizador citar ao pedir apoio, e para cruzar com o log. */
+  /** For the user to quote when asking for support, and to cross with the log. */
   requestId: z.string().optional()
 });
 var paginationQuerySchema = z.object({
@@ -261,7 +262,7 @@ var paginationQuerySchema = z.object({
 var paginatedSchema = (item) => z.object({
   items: z.array(item),
   nextCursor: z.string().nullable(),
-  /** Só quando é barato de obter. Ausente não significa zero. */
+  /** Only when it is cheap to obtain. Absent does not mean zero. */
   totalCount: z.number().int().optional()
 });
 var periodRangeSchema = z.object({
@@ -273,7 +274,7 @@ var periodRangeSchema = z.object({
 });
 var auditEventSchema = z.object({
   id: idSchema,
-  /** Verbo no passado, com pontos: `subscription.changed`, `auth.login`. */
+  /** Past-tense verb, dotted: `subscription.changed`, `auth.login`. */
   action: z.string(),
   resourceType: z.string().nullable(),
   resourceId: z.string().nullable(),
@@ -290,7 +291,7 @@ var signupInputSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
   name: z.string().min(1).max(120).trim(),
-  /** Criada no mesmo passo: uma conta sem organização não faz nada. */
+  /** Created in the same step: an account without an organization does nothing. */
   organizationName: z.string().min(1).max(160).trim(),
   locale: localeSchema.optional(),
   acceptedTermsAt: isoDateTimeSchema
@@ -312,7 +313,7 @@ var resetPasswordInputSchema = z.object({
 var tokenPairSchema = z.object({
   accessToken: z.string(),
   refreshToken: z.string(),
-  /** Segundos até o access expirar. O cliente renova antes, não depois de falhar. */
+  /** Seconds until the access expires. The client renews before, not after failing. */
   expiresIn: z.number().int().positive()
 });
 var sessionOrganizationSchema = z.object({
@@ -342,9 +343,9 @@ var organizationSchema = z.object({
   partnerId: idSchema.nullable(),
   baseCurrency: currencySchema,
   locale: localeSchema,
-  /** IANA, ex. `Europe/Lisbon`. Decide a que mês pertence uma transacção. */
+  /** IANA, e.g. `Europe/Lisbon`. Decides which month a transaction belongs to. */
   timezone: z.string(),
-  /** Mês em que começa o ano fiscal, 1–12. Nem toda a empresa fecha em Dezembro. */
+  /** Month the fiscal year starts in, 1–12. Not every company closes in December. */
   fiscalYearStartMonth: z.number().int().min(1).max(12),
   createdAt: isoDateTimeSchema
 });
@@ -384,7 +385,7 @@ var organizationSettingsSchema = z.object({
   fiscalYearStartMonth: z.number().int().min(1).max(12),
   dataRetentionMonths: z.number().int().min(1).max(120).nullable(),
   aiDataProcessingConsent: z.boolean(),
-  /** Pseudonimizar nomes ao detectar padrão de folha de salários na ingestão. */
+  /** Pseudonymize names when a payroll sheet pattern is detected on ingestion. */
   pseudonymizePayroll: z.boolean(),
   branding: brandingConfigSchema.nullable()
 });
@@ -400,40 +401,41 @@ var dataSourceSchema = z.object({
   name: z.string(),
   capabilities: z.array(connectorCapabilitySchema),
   /**
-   * Configuração não secreta: endpoint, id de empresa remota, filtros.
-   * As credenciais nunca vivem aqui — vivem cifradas e nunca saem do backend.
+   * Non-secret configuration: endpoint, remote company id, filters.
+   * Credentials never live here — they live encrypted and never leave the backend.
    */
   config: z.record(z.string(), z.unknown()),
-  /** Nunca `true` para o frontend saber a chave; só se ela existe. */
+  /** Never `true` so the frontend knows the key; only whether it exists. */
   hasCredentials: z.boolean(),
   lastSyncAt: isoDateTimeSchema.nullable(),
   lastSyncError: z.string().nullable(),
   createdAt: isoDateTimeSchema
 });
 var syncCursorSchema = z.object({
-  /** Marca de água do fornecedor: timestamp, id sequencial ou token opaco. */
+  /** Supplier watermark: timestamp, sequential id or opaque token. */
   value: z.string(),
   updatedAt: isoDateTimeSchema
 });
 var discoveredFieldSchema = z.object({
   name: z.string(),
-  /** Tipo inferido da amostra, não declarado. Excel mente sobre tipos. */
+  /** Type inferred from the sample, not declared. Excel lies about types. */
   inferredType: z.enum(["date", "number", "string", "boolean", "empty", "mixed"]),
-  /** Primeiras linhas, para o utilizador reconhecer a coluna ao mapear. */
+  /** First rows, for the user to recognize the column when mapping. */
   sampleValues: z.array(z.string()),
   nullRatio: z.number().min(0).max(1)
 });
 var discoveredEntitySchema = z.object({
-  /** Nome da folha, tabela ou entidade remota. */
+  /** Name of the sheet, table or remote entity. */
   name: z.string(),
   rowCount: z.number().int().nonnegative(),
   fields: z.array(discoveredFieldSchema),
   /**
-   * Sinalizado quando as colunas parecem folha de salários.
+   * Flagged when the columns look like a payroll sheet.
    *
-   * É o ficheiro com salário associado a pessoa identificada — dado pessoal de
-   * terceiros e a razão nº1 para um CFO não carregar nada. Detectar permite
-   * oferecer pseudonimização antes de persistir, em vez de descobrir depois.
+   * It is the file with a salary tied to an identified person — personal data of
+   * third parties and the number one reason for a CFO not to upload anything.
+   * Detecting it allows offering pseudonymization before persisting, instead of
+   * finding out afterwards.
    */
   suspectedPayroll: z.boolean()
 });
@@ -454,7 +456,7 @@ var aiProviderConfigSchema = z.object({
   apiKeyMask: z.string().nullable(),
   embeddingModel: z.string().nullable(),
   retentionPolicy: aiRetentionPolicySchema,
-  /** Falso quando o endpoint sai da máquina ou da região do cliente. */
+  /** False when the endpoint leaves the client's machine or region. */
   dataStaysLocal: z.boolean(),
   isActive: z.boolean(),
   createdAt: isoDateTimeSchema
@@ -463,7 +465,7 @@ var upsertAIProviderConfigInputSchema = z.object({
   kind: z.string(),
   model: z.string().min(1),
   baseUrl: z.string().url().nullable().optional(),
-  /** Só na escrita. Nunca volta numa leitura. */
+  /** Only on the write. Never comes back on a read. */
   apiKey: z.string().min(1).nullable().optional(),
   embeddingModel: z.string().nullable().optional(),
   retentionPolicy: aiRetentionPolicySchema.optional()
@@ -473,11 +475,11 @@ var datasetSchema = z.object({
   organizationId: idSchema,
   name: z.string(),
   /**
-   * Sobe a cada import concluído.
+   * Goes up on each completed import.
    *
-   * É a peça que torna os relatórios reproduzíveis (§46) e que invalida o cache
-   * de métricas por construção: chave nova, valores antigos deixam de ser lidos,
-   * sem invalidação manual — que é onde nascem os números errados em cache.
+   * It is the piece that makes reports reproducible (§46) and that invalidates
+   * the metrics cache by construction: new key, old values stop being read, with
+   * no manual invalidation — which is where wrong cached numbers are born.
    */
   version: z.number().int().positive(),
   transactionCount: z.number().int().nonnegative(),
@@ -493,12 +495,12 @@ var importSchema = z.object({
   fileName: z.string(),
   fileSizeBytes: z.number().int().nonnegative(),
   /**
-   * SHA-256 do conteúdo.
+   * SHA-256 of the content.
    *
-   * Com `unique(organizationId, fileHash)` na base, carregar duas vezes o mesmo
-   * ficheiro é rejeitado pela constraint (§92). A verificação é a constraint, e
-   * não um `findFirst` antes do `create` — entre o ler e o escrever cabe outro
-   * pedido, e é assim que nascem duplicados em produção.
+   * With `unique(organizationId, fileHash)` in the database, uploading the same
+   * file twice is rejected by the constraint (§92). The check is the constraint,
+   * and not a `findFirst` before the `create` — between the read and the write
+   * another request fits, and that is how duplicates are born in production.
    */
   fileHash: z.string(),
   rowsTotal: z.number().int().nonnegative(),
@@ -526,7 +528,7 @@ var columnMappingSchema = z.object({
   sourceColumn: z.string(),
   targetField: targetFieldSchema,
   confidence: z.number().min(0).max(1),
-  /** Formato detectado, ex. `DD/MM/YYYY` ou `1.234,56`. */
+  /** Detected format, e.g. `DD/MM/YYYY` or `1.234,56`. */
   format: z.string().nullable()
 });
 var importMappingSchema = z.object({
@@ -539,7 +541,7 @@ var confirmMappingInputSchema = z.object({
   sheetName: z.string().nullable(),
   transactionType: transactionTypeSchema,
   columns: z.array(columnMappingSchema),
-  /** Pseudonimizar nomes quando a folha parece de salários. */
+  /** Pseudonymize names when the sheet looks like payroll. */
   pseudonymizeNames: z.boolean().default(false)
 });
 var dataQualityIssueSchema = z.object({
@@ -561,7 +563,7 @@ var dataQualitySummarySchema = z.object({
 var importProgressSchema = z.object({
   importId: idSchema,
   state: importStateSchema,
-  /** 0–100. Estimativa; a UI mostra barra, não promessa de tempo. */
+  /** 0–100. An estimate; the UI shows a bar, not a promise of time. */
   progressPercent: z.number().min(0).max(100),
   message: z.string().nullable()
 });
@@ -573,7 +575,7 @@ var lineageRefSchema = z.object({
   importId: idSchema,
   fileName: z.string(),
   sheetName: z.string().nullable(),
-  /** Número da linha no ficheiro original, tal como o utilizador a vê no Excel. */
+  /** Row number in the original file, just as the user sees it in Excel. */
   rowNumber: z.number().int().positive().nullable()
 });
 var transactionSchema = z.object({
@@ -597,7 +599,7 @@ var customerSchema = z.object({
   id: idSchema,
   organizationId: idSchema,
   name: z.string(),
-  /** Enriquecimento comercial (M8). Nulo enquanto ninguém preencher. */
+  /** Commercial enrichment (M8). Null until someone fills it in. */
   segment: z.string().nullable(),
   country: z.string().nullable(),
   status: customerStatusSchema,
@@ -621,7 +623,7 @@ var categorySchema = z.object({
   organizationId: idSchema,
   name: z.string(),
   type: transactionTypeSchema,
-  /** Hierarquia rasa: uma categoria pode ter pai, o pai não tem avô. */
+  /** Shallow hierarchy: a category can have a parent, the parent has no grandparent. */
   parentId: idSchema.nullable(),
   createdAt: isoDateTimeSchema
 });
@@ -642,17 +644,17 @@ var transactionFilterSchema = paginationQuerySchema.extend({
   supplierId: idSchema.optional(),
   categoryId: idSchema.optional(),
   importId: idSchema.optional(),
-  /** Pesquisa por descrição, cliente, fornecedor ou número de factura. */
+  /** Search by description, customer, supplier or invoice number. */
   search: z.string().max(200).optional(),
   minAmountCents: z.coerce.number().int().optional(),
   maxAmountCents: z.coerce.number().int().optional(),
   sortBy: z.enum(["date", "amount", "description"]).default("date"),
   sortDir: z.enum(["asc", "desc"]).default("desc"),
   /**
-   * Salto para uma página numerada. Convive com o cursor, que continua a ser o
-   * caminho por omissão: um cursor diz onde continuar, não onde fica a página 7
-   * — e o explorador é onde alguém procura uma transacção de Março. O tecto de
-   * 200 mantém o custo do salto em milissegundos; para lá dele, filtra-se.
+   * Jump to a numbered page. Coexists with the cursor, which remains the default
+   * path: a cursor says where to continue, not where page 7 is — and the
+   * explorer is where someone looks for a transaction from March. The ceiling of
+   * 200 keeps the cost of the jump in milliseconds; beyond it, you filter.
    */
   page: z.coerce.number().int().min(1).max(200).optional()
 });
@@ -660,9 +662,9 @@ var breakdownItemSchema = z.object({
   id: idSchema.nullable(),
   label: z.string(),
   amount: moneySchema,
-  /** Peso no total do período, 0–100. */
+  /** Weight in the period total, 0–100. */
   sharePercent: z.number(),
-  /** Variação face ao período anterior; nulo quando não havia base. */
+  /** Variation against the previous period; null when there was no base. */
   changePercent: z.number().nullable(),
   transactionCount: z.number().int().nonnegative()
 });
@@ -687,12 +689,12 @@ var leadSchema = z.object({
   ownerName: z.string().nullable(),
   convertedToCustomerId: idSchema.nullable(),
   /**
-   * A versão do bloqueio optimista, e viaja na leitura de propósito.
+   * The optimistic locking version, and it travels on the read on purpose.
    *
-   * As rotas de escrita exigem a versão que se leu — sem ela na resposta, um
-   * cliente honesto só pode adivinhar: manda zero, funciona no primeiro lead e
-   * falha em todos os que já foram tocados. Um bloqueio que o consumidor não
-   * consegue satisfazer não é segurança, é uma funcionalidade partida.
+   * The write routes require the version that was read — without it in the
+   * response, an honest client can only guess: it sends zero, works on the first
+   * lead and fails on every one that has already been touched. A lock the
+   * consumer cannot satisfy is not security, it is a broken feature.
    */
   version: z.number().int().nonnegative(),
   createdAt: isoDateTimeSchema,
@@ -706,7 +708,7 @@ var opportunitySchema = z.object({
   title: z.string(),
   stage: opportunityStageSchema,
   value: moneySchema,
-  /** 0–100. Multiplicada pelo valor dá o pipeline ponderado do forecast (§40). */
+  /** 0–100. Multiplied by the value it gives the forecast's weighted pipeline (§40). */
   probability: z.number().min(0).max(100),
   expectedCloseDate: isoDateSchema.nullable(),
   closedAt: isoDateTimeSchema.nullable(),
@@ -773,7 +775,7 @@ var leadFilterSchema = paginationQuerySchema.extend({
   search: z.string().max(200).optional()
 });
 var METRIC_IDS = [
-  // Folhas — as únicas que consultam a base directamente
+  // Leaves — the only ones that query the database directly
   "REVENUE",
   "EXPENSES",
   "COGS",
@@ -782,7 +784,7 @@ var METRIC_IDS = [
   "ACCOUNTS_RECEIVABLE",
   "ACCOUNTS_PAYABLE",
   "BUDGETED_EXPENSES",
-  // Derivadas — funções puras das suas dependências
+  // Derived — pure functions of their dependencies
   "GROSS_PROFIT",
   "GROSS_MARGIN",
   "OPERATING_PROFIT",
@@ -802,9 +804,9 @@ var metricNodeSpecSchema = z.object({
   id: metricIdSchema,
   unit: metricUnitSchema,
   dependsOn: z.array(metricIdSchema),
-  /** Verdadeiro quando o nó agrega transacções em vez de derivar de outros nós. */
+  /** True when the node aggregates transactions instead of deriving from other nodes. */
   isLeaf: z.boolean(),
-  /** Fórmula legível, ex. `GROSS_PROFIT - OPEX`. Mostrada no painel de evidência. */
+  /** Readable formula, e.g. `GROSS_PROFIT - OPEX`. Shown in the evidence panel. */
   formula: z.string().nullable()
 });
 var metricValueSchema = z.object({
@@ -812,34 +814,34 @@ var metricValueSchema = z.object({
   period: periodSchema,
   unit: metricUnitSchema,
   /**
-   * Cêntimos quando MONEY; número simples nas outras unidades.
+   * Cents when MONEY; a plain number in the other units.
    *
-   * **`null` significa "não calculável", e não zero.** Uma margem sem receita, um
-   * runway sem queima ou um crescimento sem período anterior não valem zero —
-   * não têm base para existir.
+   * **`null` means "not calculable", and not zero.** A margin without revenue, a
+   * runway without burn or a growth without a previous period are not worth zero
+   * — they have no basis to exist.
    *
-   * A distinção não é preciosismo: mostrar "0,0 meses" de autonomia a um CFO
-   * cujo mês foi lucrativo é afirmar um facto falso sobre o negócio dele. A UI
-   * mostra travessão.
+   * The distinction is not fussiness: showing "0.0 months" of runway to a CFO
+   * whose month was profitable is asserting a false fact about their business.
+   * The UI shows a dash.
    */
   value: z.number().nullable(),
   currency: currencySchema.nullable(),
-  /** Nulo quando não há período anterior com que comparar. */
+  /** Null when there is no previous period to compare with. */
   delta: deltaSchema.nullable(),
   /**
-   * Versão do dataset que produziu este valor.
+   * Version of the dataset that produced this value.
    *
-   * Vai em todo o lado porque um relatório tem de ser reproduzível (§46): sem
-   * ela, reimprimir o relatório de Julho depois de corrigir um ficheiro dá outro
-   * número e ninguém sabe qual estava certo.
+   * It goes everywhere because a report has to be reproducible (§46): without
+   * it, reprinting the July report after correcting a file gives another number
+   * and nobody knows which one was right.
    */
   datasetVersion: z.number().int()
 });
 var varianceContributionSchema = z.object({
   label: z.string(),
-  /** Presente quando o ramo é uma métrica; ausente quando é uma dimensão. */
+  /** Present when the branch is a metric; absent when it is a dimension. */
   metricId: metricIdSchema.nullable(),
-  /** Presente quando o ramo é um cliente, categoria ou fornecedor. */
+  /** Present when the branch is a customer, category or supplier. */
   entityId: idSchema.nullable(),
   changeAbsolute: z.number(),
   changePercent: z.number().nullable(),
@@ -852,7 +854,7 @@ var varianceTreeSchema = z.lazy(
 );
 var metricQuerySchema = z.object({
   period: periodSchema,
-  /** Omitido usa o período anterior imediato. */
+  /** Omitted uses the immediately previous period. */
   comparePeriod: periodSchema.optional(),
   metrics: z.array(metricIdSchema).optional()
 });
@@ -878,7 +880,7 @@ var dashboardSummarySchema = z.object({
   currency: currencySchema,
   datasetVersion: z.number().int(),
   metrics: z.array(metricValueSchema),
-  /** Opcional para a v0.4.0 continuar válida: sem ele, o painel usa a ordem fixa. */
+  /** Optional so v0.4.0 stays valid: without it, the panel uses the fixed order. */
   shape: overviewShapeSchema.optional()
 });
 var calculationSchema = z.object({
@@ -908,7 +910,7 @@ var evidenceSchema = z.object({
   calculations: z.array(calculationSchema),
   transactionCount: z.number().int().nonnegative(),
   sampleTransactions: z.array(evidenceTransactionSchema),
-  /** Ficheiros que contribuíram, para o utilizador reconhecer a origem. */
+  /** Files that contributed, for the user to recognize the origin. */
   sources: z.array(
     z.object({
       importId: idSchema,
@@ -924,33 +926,36 @@ var insightSchema = z.object({
   type: insightTypeSchema,
   severity: severitySchema,
   period: periodSchema,
-  /** Ex.: `insights.REVENUE_DECLINE.title`. Resolve-se contra `messages/`. */
+  /** E.g.: `insights.REVENUE_DECLINE.title`. Resolved against `messages/`. */
   titleKey: z.string(),
   /**
-   * A mesma afirmação tem redacções diferentes conforme o que se sabe — com ou
-   * sem os clientes que explicam a queda, com ou sem a comparação com a
-   * carteira. É o detector que escolhe, porque é ele que sabe o que apurou.
+   * The same statement has different wordings depending on what is known — with
+   * or without the customers that explain the drop, with or without the
+   * comparison against the portfolio. It is the detector that chooses, because
+   * it is the one that knows what it found.
    */
   descriptionKey: z.string(),
   /**
-   * Valores para o ICU. Uma lista de nomes viaja como **array**, nunca como
-   * string já unida: o separador de lista muda com o idioma, e juntá-la no
-   * servidor seria escrever português. Quem a junta é o `Intl.ListFormat`.
+   * Values for ICU. A list of names travels as an **array**, never as an
+   * already-joined string: the list separator changes with the language, and
+   * joining it on the server would be writing Portuguese. What joins it is
+   * `Intl.ListFormat`.
    */
   params: z.record(z.string(), z.union([z.string(), z.number(), z.array(z.string())])),
   metricId: metricIdSchema.nullable(),
   /**
-   * A entidade a que a afirmação se refere — o cliente que caiu, a rubrica que
-   * estourou. Com o `metricId` e o `period`, é o endereço da prova **e** o
-   * destino do clique: os dois têm de ser a mesma coisa, senão o painel mostra
-   * linhas diferentes das que o clique abre.
+   * The entity the statement refers to — the customer that dropped, the line
+   * item that blew up. Together with `metricId` and `period`, it is the address
+   * of the proof **and** the destination of the click: the two have to be the
+   * same thing, otherwise the panel shows different rows from the ones the click
+   * opens.
    */
   entityId: idSchema.nullable(),
   dimension: z.enum(["customer", "supplier", "category"]).nullable(),
-  /** Números que sustentam a afirmação, para a UI mostrar sem recalcular. */
+  /** Numbers that support the statement, for the UI to show without recalculating. */
   supportingData: z.record(z.string(), z.number()),
   evidence: evidenceSchema.nullable(),
-  /** Dispensado pelo utilizador: não volta a aparecer para o mesmo período. */
+  /** Dismissed by the user: does not appear again for the same period. */
   dismissedAt: isoDateTimeSchema.nullable(),
   datasetVersion: z.number().int(),
   createdAt: isoDateTimeSchema
@@ -966,28 +971,28 @@ var recommendationSchema = z.object({
   insightId: idSchema.nullable(),
   title: z.string(),
   rationale: z.string(),
-  /** Sempre `RECOMMENDATION`, para a UI nunca a mostrar como facto. */
+  /** Always `RECOMMENDATION`, so the UI never shows it as a fact. */
   kind: z.literal("RECOMMENDATION"),
   createdAt: isoDateTimeSchema
 });
 var changeItemSchema = z.object({
   metricId: metricIdSchema,
   unit: z.string(),
-  /** O valor no período, para a UI não voltar a pedir o resumo. */
+  /** The value in the period, so the UI does not request the summary again. */
   actual: z.number(),
   changeAbsolute: z.number(),
   /**
-   * `null` para margens, e para quem não tem base de comparação.
+   * `null` for margins, and for whatever has no comparison base.
    *
-   * Uma margem varia em **pontos percentuais**, não em percentagem: de 40% para
-   * 42% são +2pp, e dizer "+5%" é verdade sobre o rácio e enganador sobre o
-   * negócio. Os dois campos existem separados para a UI não ter de adivinhar
-   * qual é o certo — o que estiver preenchido é o que se mostra.
+   * A margin varies in **percentage points**, not in percentage: from 40% to 42%
+   * is +2pp, and saying "+5%" is true about the ratio and misleading about the
+   * business. The two fields exist separately so the UI does not have to guess
+   * which is the right one — whichever is filled in is what is shown.
    */
   changePercent: z.number().nullable(),
   changePoints: z.number().nullable(),
   direction: z.enum(["up", "down"]),
-  /** Se subir é bom ou mau depende da métrica: despesa a subir não é vitória. */
+  /** Whether going up is good or bad depends on the metric: expenses rising is no win. */
   sentiment: z.enum(["positive", "negative"])
 });
 var whatChangedResponseSchema = z.object({
@@ -1000,23 +1005,23 @@ var insightFilterSchema = z.object({
   type: insightTypeSchema.optional(),
   severity: severitySchema.optional(),
   /**
-   * `z.coerce.boolean()` está proibido aqui, e não é preferência: a coerção do
-   * Zod é `Boolean(valor)`, e qualquer string não vazia é verdadeira —
-   * `?includeDismissed=false` chegaria como `true`. Armadilha já paga uma vez
-   * neste projecto.
+   * `z.coerce.boolean()` is forbidden here, and it is not a preference: Zod's
+   * coercion is `Boolean(value)`, and any non-empty string is true —
+   * `?includeDismissed=false` would arrive as `true`. A trap already paid for
+   * once in this project.
    */
   includeDismissed: z.enum(["true", "false"]).default("false").transform((valor) => valor === "true")
 });
 var keyPointSchema = z.object({
   type: aiResponseTypeSchema,
   text: z.string(),
-  /** Presente em FACT e CALCULATION. Ausente é sinal de afirmação não suportada. */
+  /** Present in FACT and CALCULATION. Absent is a sign of an unsupported statement. */
   evidenceId: idSchema.nullable()
 });
 var assumptionSchema = z.object({
   label: z.string(),
   value: z.string(),
-  /** Verdadeiro quando foi o modelo a assumir, não o utilizador a declarar. */
+  /** True when it was the model assuming, not the user declaring. */
   inferred: z.boolean()
 });
 var aiRecommendationSchema = z.object({
@@ -1032,11 +1037,11 @@ var aiAnswerSchema = z.object({
   recommendations: z.array(aiRecommendationSchema),
   followUpQuestions: z.array(z.string()),
   /**
-   * Verdadeiro quando os dados não chegavam para responder.
+   * True when the data was not enough to answer.
    *
-   * O §21 obriga a dizê-lo em vez de preencher o vazio com algo plausível — e
-   * admitir falta de dados é o comportamento que sustenta a confiança a longo
-   * prazo.
+   * §21 requires saying so instead of filling the void with something plausible
+   * — and admitting a lack of data is the behaviour that sustains trust in the
+   * long run.
    */
   insufficientData: z.boolean()
 });
@@ -1046,7 +1051,7 @@ var aiMessageSchema = z.object({
   role: z.enum(["USER", "ASSISTANT"]),
   content: z.string(),
   answer: aiAnswerSchema.nullable(),
-  /** Guardado com a resposta para o relatório ser reproduzível (§46, §47). */
+  /** Stored with the answer so the report is reproducible (§46, §47). */
   provider: z.string().nullable(),
   model: z.string().nullable(),
   promptVersion: z.string().nullable(),
@@ -1074,7 +1079,7 @@ var aiUsageSchema = z.object({
   inputTokens: z.number().int().nonnegative(),
   outputTokens: z.number().int().nonnegative(),
   cachedTokens: z.number().int().nonnegative(),
-  /** Cêntimos. Estimativa — o valor verdadeiro é o da factura do provider. */
+  /** Cents. An estimate — the true value is the one on the provider's invoice. */
   estimatedCostCents: z.number().int().nonnegative(),
   latencyMs: z.number().int().nonnegative(),
   createdAt: isoDateTimeSchema
@@ -1093,21 +1098,21 @@ var aiUsageSummarySchema = z.object({
 var aiPrivacyStatusSchema = z.object({
   providerKind: aiProviderKindSchema,
   model: z.string(),
-  /** Falso quando o endpoint sai da máquina ou da região configurada. */
+  /** False when the endpoint leaves the configured machine or region. */
   dataStaysLocal: z.boolean(),
   retentionPolicy: aiRetentionPolicySchema,
   isBYOK: z.boolean(),
-  /** Onde o pedido é processado, tanto quanto se sabe do endpoint. */
+  /** Where the request is processed, as far as is known from the endpoint. */
   processingRegion: z.string().nullable()
 });
 var scenarioInputSchema = z.object({
   type: scenarioTypeSchema,
   name: z.string().min(1).max(160),
   basePeriod: periodSchema,
-  /** Meses a projectar a partir do período base. */
+  /** Months to project from the base period. */
   horizonMonths: z.number().int().min(1).max(36).default(12),
   /**
-   * Parâmetros da alteração, conforme o tipo:
+   * Parameters of the change, according to the type:
    *
    *   REVENUE_CHANGE   { percent: -10 }
    *   EXPENSE_CHANGE   { categoryId, percent: 20 }
@@ -1133,7 +1138,7 @@ var scenarioResultSchema = z.object({
   currency: currencySchema,
   impacts: z.array(scenarioImpactSchema),
   assumptions: z.array(assumptionSchema),
-  /** Redigida pela IA a partir dos impactos já calculados (M7). */
+  /** Written by the AI from the already calculated impacts (M7). */
   explanation: z.string().nullable(),
   datasetVersion: z.number().int(),
   createdAt: isoDateTimeSchema
@@ -1173,9 +1178,9 @@ var reportSectionKindSchema = z.enum(REPORT_SECTION_KINDS);
 var reportSectionSchema = z.object({
   kind: reportSectionKindSchema,
   title: z.string(),
-  /** Markdown. Por template no M6, redigido pela IA a partir do M7. */
+  /** Markdown. By template in M6, written by the AI from M7 onwards. */
   body: z.string(),
-  /** Verdadeiro quando o texto saiu de um modelo — o PDF marca-o. */
+  /** True when the text came out of a model — the PDF marks it. */
   aiGenerated: z.boolean()
 });
 var reportMetadataSchema = z.object({
@@ -1202,7 +1207,7 @@ var reportSchema = z.object({
 var generateReportInputSchema = z.object({
   period: periodSchema,
   locale: localeSchema.optional(),
-  /** Sem IA gera as secções por template — o comportamento do M6. */
+  /** Without AI it generates the sections by template — the M6 behaviour. */
   useAI: z.boolean().default(false)
 });
 var exportRequestSchema = z.object({
@@ -1218,11 +1223,11 @@ var planLimitsSchema = z.object({
   maxUsers: z.number().int().positive().nullable(),
   maxTransactions: z.number().int().positive().nullable(),
   maxOrganizations: z.number().int().positive().nullable(),
-  /** Cêntimos de consumo de IA incluídos por mês. */
+  /** Cents of AI consumption included per month. */
   aiMonthlyAllowanceCents: z.number().int().nonnegative().nullable(),
-  /** Deixa continuar acima do limite e cobra o excedente. */
+  /** Lets it carry on above the limit and charges the overage. */
   allowAIOverage: z.boolean(),
-  // Funcionalidades de soberania — o que legitimamente escala por preço
+  // Sovereignty features — what legitimately scales by price
   canUseBYOK: z.boolean(),
   canUseLocalAI: z.boolean(),
   canChooseDataRegion: z.boolean(),
@@ -1234,7 +1239,7 @@ var planLimitsSchema = z.object({
 var planSchema = z.object({
   tier: planTierSchema,
   name: z.string(),
-  /** Cêntimos por mês. Configurável — o §80 exige preço não codificado. */
+  /** Cents per month. Configurable — §80 requires the price not be hard-coded. */
   monthlyPriceCents: z.number().int().nonnegative(),
   yearlyPriceCents: z.number().int().nonnegative(),
   currency: z.string().length(3),

@@ -5,64 +5,70 @@ import { evidenceSchema } from './evidence.js'
 import { metricIdSchema } from './metrics.js'
 
 /**
- * Insights — o que o sistema diz antes de lhe perguntarem (§36, §115).
+ * Insights — what the system says before being asked (§36, §115).
  *
- * A diferença entre um dashboard e este produto está aqui: o dashboard espera
- * que o utilizador descubra; isto abre já com "há três coisas que devias saber".
+ * The difference between a dashboard and this product is here: the dashboard
+ * waits for the user to discover; this one opens straight away with "there are
+ * three things you should know".
  *
- * Cada insight nasce de um detector determinístico sobre métricas calculadas,
- * nunca de um modelo a opinar. A IA, quando chegar no M7, redige — não decide o
- * que é anómalo.
+ * Each insight is born of a deterministic detector over calculated metrics,
+ * never of a model giving an opinion. The AI, when it arrives in M7, writes — it
+ * does not decide what is anomalous.
  */
 
 /**
- * **Chave de tradução e parâmetros, nunca texto pronto.**
+ * **Translation key and parameters, never ready-made text.**
  *
- * A v0.3.0 descrevia `title` e `description` como texto "já traduzido no locale
- * do pedido", e estava errada sobre o que o produto faz. Traduzir no servidor
- * obrigava-o a ter o seu próprio catálogo em quatro idiomas, com o seu próprio
- * gate de paridade — uma segunda cópia da infraestrutura de i18n, e a garantia
- * de que as duas divergiriam. Pior: a redacção passaria a viver em dois sítios.
+ * v0.3.0 described `title` and `description` as text "already translated in the
+ * locale of the request", and was wrong about what the product does. Translating
+ * on the server forced it to have its own catalogue in four languages, with its
+ * own parity gate — a second copy of the i18n infrastructure, and the guarantee
+ * that the two would diverge. Worse: the wording would come to live in two
+ * places.
  *
- * Por baixo disto há uma separação que vale por si: **decidir o que é anómalo e
- * decidir como se diz são trabalhos diferentes**. O primeiro é determinístico e
- * testa-se com números; o segundo é editorial e revê-se lendo. Separados, o
- * detector testa-se sem uma única palavra de português no meio.
+ * Underneath this there is a separation that is worth it on its own: **deciding
+ * what is anomalous and deciding how it is said are different jobs**. The first
+ * is deterministic and is tested with numbers; the second is editorial and is
+ * reviewed by reading. Separated, the detector is tested without a single word
+ * of Portuguese in the middle.
  *
- * O desvio ao §37 está registado em `docs/ARCHITECTURE.md`.
+ * The deviation from §37 is recorded in `docs/ARCHITECTURE.md`.
  */
 export const insightSchema = z.object({
   id: idSchema,
   type: insightTypeSchema,
   severity: severitySchema,
   period: periodSchema,
-  /** Ex.: `insights.REVENUE_DECLINE.title`. Resolve-se contra `messages/`. */
+  /** E.g.: `insights.REVENUE_DECLINE.title`. Resolved against `messages/`. */
   titleKey: z.string(),
   /**
-   * A mesma afirmação tem redacções diferentes conforme o que se sabe — com ou
-   * sem os clientes que explicam a queda, com ou sem a comparação com a
-   * carteira. É o detector que escolhe, porque é ele que sabe o que apurou.
+   * The same statement has different wordings depending on what is known — with
+   * or without the customers that explain the drop, with or without the
+   * comparison against the portfolio. It is the detector that chooses, because
+   * it is the one that knows what it found.
    */
   descriptionKey: z.string(),
   /**
-   * Valores para o ICU. Uma lista de nomes viaja como **array**, nunca como
-   * string já unida: o separador de lista muda com o idioma, e juntá-la no
-   * servidor seria escrever português. Quem a junta é o `Intl.ListFormat`.
+   * Values for ICU. A list of names travels as an **array**, never as an
+   * already-joined string: the list separator changes with the language, and
+   * joining it on the server would be writing Portuguese. What joins it is
+   * `Intl.ListFormat`.
    */
   params: z.record(z.string(), z.union([z.string(), z.number(), z.array(z.string())])),
   metricId: metricIdSchema.nullable(),
   /**
-   * A entidade a que a afirmação se refere — o cliente que caiu, a rubrica que
-   * estourou. Com o `metricId` e o `period`, é o endereço da prova **e** o
-   * destino do clique: os dois têm de ser a mesma coisa, senão o painel mostra
-   * linhas diferentes das que o clique abre.
+   * The entity the statement refers to — the customer that dropped, the line
+   * item that blew up. Together with `metricId` and `period`, it is the address
+   * of the proof **and** the destination of the click: the two have to be the
+   * same thing, otherwise the panel shows different rows from the ones the click
+   * opens.
    */
   entityId: idSchema.nullable(),
   dimension: z.enum(['customer', 'supplier', 'category']).nullable(),
-  /** Números que sustentam a afirmação, para a UI mostrar sem recalcular. */
+  /** Numbers that support the statement, for the UI to show without recalculating. */
   supportingData: z.record(z.string(), z.number()),
   evidence: evidenceSchema.nullable(),
-  /** Dispensado pelo utilizador: não volta a aparecer para o mesmo período. */
+  /** Dismissed by the user: does not appear again for the same period. */
   dismissedAt: isoDateTimeSchema.nullable(),
   datasetVersion: z.number().int(),
   createdAt: isoDateTimeSchema,
@@ -70,16 +76,17 @@ export const insightSchema = z.object({
 export type Insight = z.infer<typeof insightSchema>
 
 /**
- * A resposta do endpoint, e não só a lista.
+ * The endpoint's response, and not just the list.
  *
- * A moeda vem aqui para a página não ter de pedir o resumo do dashboard só para
- * poder formatar meia dúzia de valores — seriam três queries e uma avaliação
- * inteira do grafo de métricas. A versão do dataset vem porque é o que torna a
- * lista reproduzível (§46): os mesmos insights sobre os mesmos dados.
+ * The currency comes here so the page does not have to request the dashboard
+ * summary just to be able to format half a dozen values — that would be three
+ * queries and a whole evaluation of the metrics graph. The dataset version comes
+ * because it is what makes the list reproducible (§46): the same insights over
+ * the same data.
  *
- * Repare no que **não** está aqui: `organizationId`. O tenant é implícito na
- * sessão, e devolvê-lo em cada objecto seria repetir em cada linha uma coisa que
- * o cliente já sabe e não pode escolher.
+ * Note what is **not** here: `organizationId`. The tenant is implicit in the
+ * session, and returning it in every object would be repeating on every row
+ * something the client already knows and cannot choose.
  */
 export const insightsResponseSchema = z.object({
   period: periodSchema,
@@ -90,51 +97,51 @@ export const insightsResponseSchema = z.object({
 export type InsightsResponse = z.infer<typeof insightsResponseSchema>
 
 /**
- * Recomendação (§38).
+ * Recommendation (§38).
  *
- * Separada do insight de propósito. O insight é o que aconteceu, e é verificável;
- * a recomendação é o que fazer a seguir, e é opinião. Misturar as duas faria uma
- * sugestão discutível herdar a autoridade de um facto — que é exactamente a
- * confusão que o §20 obriga a evitar.
+ * Separate from the insight on purpose. The insight is what happened, and it is
+ * verifiable; the recommendation is what to do next, and it is opinion. Mixing
+ * the two would make a debatable suggestion inherit the authority of a fact —
+ * which is exactly the confusion §20 requires avoiding.
  */
 export const recommendationSchema = z.object({
   id: idSchema,
   insightId: idSchema.nullable(),
   title: z.string(),
   rationale: z.string(),
-  /** Sempre `RECOMMENDATION`, para a UI nunca a mostrar como facto. */
+  /** Always `RECOMMENDATION`, so the UI never shows it as a fact. */
   kind: z.literal('RECOMMENDATION'),
   createdAt: isoDateTimeSchema,
 })
 export type Recommendation = z.infer<typeof recommendationSchema>
 
 /**
- * Item do "What changed?" (§35). Cada linha é clicável até à evidência.
+ * "What changed?" item (§35). Each row is clickable through to the evidence.
  *
- * `direction` e `sentiment` são minúsculas, ao contrário de todos os outros
- * enums deste pacote. Não é descuido: os outros são valores **persistidos** —
- * papéis, estados, tipos —, e estes são vocabulário de apresentação que nunca
- * chega à base. Uniformizá-los obrigaria a converter em ambos os lados para não
- * ganhar nada.
+ * `direction` and `sentiment` are lowercase, unlike every other enum in this
+ * package. It is not carelessness: the others are **persisted** values — roles,
+ * states, types —, and these are presentation vocabulary that never reaches the
+ * database. Uniformizing them would force converting on both sides to gain
+ * nothing.
  */
 export const changeItemSchema = z.object({
   metricId: metricIdSchema,
   unit: z.string(),
-  /** O valor no período, para a UI não voltar a pedir o resumo. */
+  /** The value in the period, so the UI does not request the summary again. */
   actual: z.number(),
   changeAbsolute: z.number(),
   /**
-   * `null` para margens, e para quem não tem base de comparação.
+   * `null` for margins, and for whatever has no comparison base.
    *
-   * Uma margem varia em **pontos percentuais**, não em percentagem: de 40% para
-   * 42% são +2pp, e dizer "+5%" é verdade sobre o rácio e enganador sobre o
-   * negócio. Os dois campos existem separados para a UI não ter de adivinhar
-   * qual é o certo — o que estiver preenchido é o que se mostra.
+   * A margin varies in **percentage points**, not in percentage: from 40% to 42%
+   * is +2pp, and saying "+5%" is true about the ratio and misleading about the
+   * business. The two fields exist separately so the UI does not have to guess
+   * which is the right one — whichever is filled in is what is shown.
    */
   changePercent: z.number().nullable(),
   changePoints: z.number().nullable(),
   direction: z.enum(['up', 'down']),
-  /** Se subir é bom ou mau depende da métrica: despesa a subir não é vitória. */
+  /** Whether going up is good or bad depends on the metric: expenses rising is no win. */
   sentiment: z.enum(['positive', 'negative']),
 })
 export type ChangeItem = z.infer<typeof changeItemSchema>
@@ -151,10 +158,10 @@ export const insightFilterSchema = z.object({
   type: insightTypeSchema.optional(),
   severity: severitySchema.optional(),
   /**
-   * `z.coerce.boolean()` está proibido aqui, e não é preferência: a coerção do
-   * Zod é `Boolean(valor)`, e qualquer string não vazia é verdadeira —
-   * `?includeDismissed=false` chegaria como `true`. Armadilha já paga uma vez
-   * neste projecto.
+   * `z.coerce.boolean()` is forbidden here, and it is not a preference: Zod's
+   * coercion is `Boolean(value)`, and any non-empty string is true —
+   * `?includeDismissed=false` would arrive as `true`. A trap already paid for
+   * once in this project.
    */
   includeDismissed: z
     .enum(['true', 'false'])

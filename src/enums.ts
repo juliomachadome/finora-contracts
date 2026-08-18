@@ -1,15 +1,16 @@
 import { z } from 'zod'
 
 /**
- * Enums partilhados entre a API e o frontend.
+ * Enums shared between the API and the frontend.
  *
- * Cada um existe como array `const` (para iterar na UI e alimentar o Prisma) e
- * como schema Zod (para validar na fronteira). O tipo sai do Zod, nunca escrito
- * à mão — assim não há hipótese de o tipo e a validação divergirem.
+ * Each one exists as a `const` array (to iterate in the UI and feed Prisma) and
+ * as a Zod schema (to validate at the boundary). The type comes out of Zod,
+ * never written by hand — that way there is no chance of the type and the
+ * validation diverging.
  */
 
 // ---------------------------------------------------------------------------
-// Identidade e acesso
+// Identity and access
 // ---------------------------------------------------------------------------
 
 export const ROLES = [
@@ -42,12 +43,12 @@ export const permissionSchema = z.enum(PERMISSIONS)
 export type Permission = z.infer<typeof permissionSchema>
 
 /**
- * Permissões por papel.
+ * Permissions per role.
  *
- * Vive nos contratos, e não só no backend, porque o frontend precisa de esconder
- * o que o utilizador não pode fazer. O backend continua a ser quem decide: isto
- * é conveniência de UI, nunca autorização (§71 — autorização é sempre no
- * servidor).
+ * Lives in the contracts, and not only in the backend, because the frontend
+ * needs to hide what the user cannot do. The backend is still the one that
+ * decides: this is UI convenience, never authorization (§71 — authorization is
+ * always on the server).
  */
 export const ROLE_PERMISSIONS: Readonly<Record<Role, readonly Permission[]>> = {
   OWNER: [...PERMISSIONS],
@@ -84,19 +85,20 @@ export const ROLE_PERMISSIONS: Readonly<Record<Role, readonly Permission[]>> = {
   ],
   ANALYST: ['view_financials', 'ask_ai', 'run_scenarios', 'export_reports', 'view_crm'],
   VIEWER: ['view_financials', 'view_crm'],
-  // O auditor vê tudo o que é histórico e não altera nada — nem sequer pergunta
-  // à IA, porque uma resposta gerada não é evidência auditável.
+  // The auditor sees everything that is historical and changes nothing — does
+  // not even ask the AI, because a generated answer is not auditable evidence.
   AUDITOR: ['view_financials', 'view_audit_logs', 'export_reports'],
 } as const
 
 // ---------------------------------------------------------------------------
-// Ingestão
+// Ingestion
 // ---------------------------------------------------------------------------
 
 export const DATA_SOURCE_KINDS = [
   'FILE_UPLOAD',
-  // Declarados agora, implementados quando houver procura (§98, §107).
-  // Estar no enum é o que garante que a arquitectura os acomoda sem migração.
+  // Declared now, implemented when there is demand (§98, §107).
+  // Being in the enum is what guarantees the architecture accommodates them
+  // without a migration.
   'XERO',
   'QUICKBOOKS',
   'SAGE',
@@ -155,7 +157,7 @@ export const dataQualityIssueTypeSchema = z.enum(DATA_QUALITY_ISSUE_TYPES)
 export type DataQualityIssueType = z.infer<typeof dataQualityIssueTypeSchema>
 
 // ---------------------------------------------------------------------------
-// Financeiro
+// Financial
 // ---------------------------------------------------------------------------
 
 export const TRANSACTION_TYPES = ['REVENUE', 'EXPENSE', 'BANK'] as const
@@ -187,17 +189,17 @@ export const severitySchema = z.enum(SEVERITIES)
 export type Severity = z.infer<typeof severitySchema>
 
 // ---------------------------------------------------------------------------
-// IA
+// AI
 // ---------------------------------------------------------------------------
 
 export const AI_PROVIDER_KINDS = [
   'mock',
-  // Um único adapter serve tudo o que fala o protocolo OpenAI: OpenAI, Ollama,
-  // vLLM, LM Studio, Groq, OpenRouter, DeepSeek, Mistral, xAI e o gateway de IA
-  // do cliente (§13).
+  // A single adapter serves everything that speaks the OpenAI protocol: OpenAI,
+  // Ollama, vLLM, LM Studio, Groq, OpenRouter, DeepSeek, Mistral, xAI and the
+  // client's own AI gateway (§13).
   'openai-compatible',
-  // Adapters nativos, para aproveitar tool calling, structured output e caching
-  // próprios (M7).
+  // Native adapters, to take advantage of their own tool calling, structured
+  // output and caching (M7).
   'gemini',
   'anthropic',
 ] as const
@@ -205,11 +207,11 @@ export const aiProviderKindSchema = z.enum(AI_PROVIDER_KINDS)
 export type AIProviderKind = z.infer<typeof aiProviderKindSchema>
 
 /**
- * Tarefas com routing independente (§16).
+ * Tasks with independent routing (§16).
  *
- * Cada uma resolve o seu provider e modelo, para dar análise rápida num modelo
- * barato e raciocínio pesado num caro sem trocar de fornecedor à mão. Trocar
- * silenciosamente para um provider não autorizado é proibido pelo §16.
+ * Each one resolves its own provider and model, so as to give fast analysis on a
+ * cheap model and heavy reasoning on an expensive one without switching supplier
+ * by hand. Silently switching to an unauthorized provider is forbidden by §16.
  */
 export const AI_TASKS = [
   'FAST_ANALYSIS',
@@ -222,21 +224,21 @@ export const aiTaskSchema = z.enum(AI_TASKS)
 export type AITask = z.infer<typeof aiTaskSchema>
 
 /**
- * Tipo de afirmação numa resposta de IA (§20).
+ * Type of statement in an AI answer (§20).
  *
- * Separar facto de inferência não é cosmético: é o que permite ao utilizador
- * saber o que pode levar a uma reunião e o que tem de confirmar primeiro.
+ * Separating fact from inference is not cosmetic: it is what lets the user know
+ * what can be taken to a meeting and what has to be confirmed first.
  */
 export const AI_RESPONSE_TYPES = ['FACT', 'CALCULATION', 'INFERENCE', 'RECOMMENDATION'] as const
 export const aiResponseTypeSchema = z.enum(AI_RESPONSE_TYPES)
 export type AIResponseType = z.infer<typeof aiResponseTypeSchema>
 
 /**
- * Política de retenção do endpoint de IA configurado.
+ * Retention policy of the configured AI endpoint.
  *
- * Existe porque alguns providers treinam com dados da API consoante o tier, e
- * uma chave mal escolhida põe dados financeiros de cliente num corpus de treino
- * — o que não se desfaz. A UI sinaliza antes do uso, não depois.
+ * Exists because some providers train on API data depending on the tier, and a
+ * badly chosen key puts a client's financial data into a training corpus — which
+ * cannot be undone. The UI flags it before use, not after.
  */
 export const AI_RETENTION_POLICIES = [
   'ZERO_RETENTION',
@@ -248,7 +250,7 @@ export const aiRetentionPolicySchema = z.enum(AI_RETENTION_POLICIES)
 export type AIRetentionPolicy = z.infer<typeof aiRetentionPolicySchema>
 
 // ---------------------------------------------------------------------------
-// Comercial (CRM)
+// Commercial (CRM)
 // ---------------------------------------------------------------------------
 
 export const CUSTOMER_STATUSES = ['PROSPECT', 'ACTIVE', 'AT_RISK', 'CHURNED'] as const
@@ -280,7 +282,7 @@ export const activityTypeSchema = z.enum(ACTIVITY_TYPES)
 export type ActivityType = z.infer<typeof activityTypeSchema>
 
 // ---------------------------------------------------------------------------
-// Cenários e relatórios
+// Scenarios and reports
 // ---------------------------------------------------------------------------
 
 export const SCENARIO_TYPES = [
@@ -302,7 +304,7 @@ export const exportFormatSchema = z.enum(EXPORT_FORMATS)
 export type ExportFormat = z.infer<typeof exportFormatSchema>
 
 // ---------------------------------------------------------------------------
-// Faturação
+// Billing
 // ---------------------------------------------------------------------------
 
 export const PLAN_TIERS = ['STARTER', 'GROWTH', 'BUSINESS', 'ENTERPRISE'] as const
@@ -324,15 +326,15 @@ export const paymentProviderSchema = z.enum(PAYMENT_PROVIDERS)
 export type PaymentProviderKind = z.infer<typeof paymentProviderSchema>
 
 // ---------------------------------------------------------------------------
-// Localização
+// Localization
 // ---------------------------------------------------------------------------
 
 /**
- * Português são dois locales, não um.
+ * Portuguese is two locales, not one.
  *
- * O vocabulário financeiro diverge a sério entre Portugal e Brasil —
- * facturação/faturamento, IVA/ICMS, tesouraria/caixa — e servir os dois
- * mercados com uma tradução só soa a estrangeiro nos dois lados.
+ * The financial vocabulary genuinely diverges between Portugal and Brazil —
+ * facturação/faturamento, IVA/ICMS, tesouraria/caixa — and serving both markets
+ * with a single translation sounds foreign on both sides.
  */
 export const LOCALES = ['pt-PT', 'pt-BR', 'es', 'en'] as const
 export const localeSchema = z.enum(LOCALES)
@@ -341,27 +343,27 @@ export type Locale = z.infer<typeof localeSchema>
 export const DEFAULT_LOCALE: Locale = 'en'
 
 // ---------------------------------------------------------------------------
-// Classificação de dados
+// Data classification
 // ---------------------------------------------------------------------------
 
 /**
- * Sensibilidade do dado, aplicada em código e não só em documento
+ * Sensitivity of the data, enforced in code and not only in a document
  * (`docs/SEGURANCA_E_PRIVACIDADE.md`).
  *
- * Alimenta a lista de redacção do logger, a decisão de cifrar em repouso e o
- * que pode chegar a um provider de IA.
+ * Feeds the logger's redaction list, the decision to encrypt at rest and what
+ * may reach an AI provider.
  *
- *   S3  chaves e credenciais       nunca em log, nunca ao frontend, nunca à IA
- *   S2  ficheiros, linhas, payroll cifrado, redigido, à IA só por ferramenta
- *   S1  métricas e nomes           escopo de tenant, valores fora do log
- *   S0  contagens e latências      pode alimentar telemetria
+ *   S3  keys and credentials       never in a log, never to the frontend, never to the AI
+ *   S2  files, rows, payroll       encrypted, redacted, to the AI only via a tool
+ *   S1  metrics and names          tenant-scoped, values kept out of the log
+ *   S0  counts and latencies       may feed telemetry
  */
 export const DATA_CLASSES = ['S0', 'S1', 'S2', 'S3'] as const
 export const dataClassSchema = z.enum(DATA_CLASSES)
 export type DataClass = z.infer<typeof dataClassSchema>
 
 // ---------------------------------------------------------------------------
-// Auditoria
+// Audit
 // ---------------------------------------------------------------------------
 
 export const AUDIT_ACTIONS = [
