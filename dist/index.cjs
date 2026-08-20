@@ -520,6 +520,15 @@ var TARGET_FIELDS = [
   "customer",
   "supplier",
   "category",
+  /*
+   * The product or line of business (T20).
+   *
+   * A dimension of its own and not the category, because `category` is already
+   * the cost taxonomy — cost of sales, salaries, marketing. Feeding product
+   * lines into it would list "Bicicletas" beside "Salários" on every screen
+   * that groups by category, as though they were both places money goes.
+   */
+  "product",
   "invoiceNumber",
   "reference",
   "externalId",
@@ -1096,7 +1105,7 @@ var insightSchema = zod.z.object({
    * opens.
    */
   entityId: idSchema.nullable(),
-  dimension: zod.z.enum(["customer", "supplier", "category"]).nullable(),
+  dimension: zod.z.enum(["customer", "supplier", "category", "product"]).nullable(),
   /** Numbers that support the statement, for the UI to show without recalculating. */
   supportingData: zod.z.record(zod.z.string(), zod.z.number()),
   evidence: evidenceSchema.nullable(),

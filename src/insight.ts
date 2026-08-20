@@ -64,7 +64,7 @@ export const insightSchema = z.object({
    * opens.
    */
   entityId: idSchema.nullable(),
-  dimension: z.enum(['customer', 'supplier', 'category']).nullable(),
+  dimension: z.enum(['customer', 'supplier', 'category', 'product']).nullable(),
   /** Numbers that support the statement, for the UI to show without recalculating. */
   supportingData: z.record(z.string(), z.number()),
   evidence: evidenceSchema.nullable(),

@@ -71,6 +71,15 @@ export const TARGET_FIELDS = [
   'customer',
   'supplier',
   'category',
+  /*
+   * The product or line of business (T20).
+   *
+   * A dimension of its own and not the category, because `category` is already
+   * the cost taxonomy — cost of sales, salaries, marketing. Feeding product
+   * lines into it would list "Bicicletas" beside "Salários" on every screen
+   * that groups by category, as though they were both places money goes.
+   */
+  'product',
   'invoiceNumber',
   'reference',
   'externalId',

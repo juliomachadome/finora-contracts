@@ -1017,7 +1017,7 @@ declare const importSchema: z.ZodObject<{
 }, z.core.$strip>;
 type Import = z.infer<typeof importSchema>;
 /** Target fields a column can feed. */
-declare const TARGET_FIELDS: readonly ["date", "description", "amount", "currency", "customer", "supplier", "category", "invoiceNumber", "reference", "externalId", "ignore"];
+declare const TARGET_FIELDS: readonly ["date", "description", "amount", "currency", "customer", "supplier", "category", "product", "invoiceNumber", "reference", "externalId", "ignore"];
 declare const targetFieldSchema: z.ZodEnum<{
     date: "date";
     currency: "currency";
@@ -1026,6 +1026,7 @@ declare const targetFieldSchema: z.ZodEnum<{
     customer: "customer";
     supplier: "supplier";
     category: "category";
+    product: "product";
     invoiceNumber: "invoiceNumber";
     reference: "reference";
     externalId: "externalId";
@@ -1049,6 +1050,7 @@ declare const columnMappingSchema: z.ZodObject<{
         customer: "customer";
         supplier: "supplier";
         category: "category";
+        product: "product";
         invoiceNumber: "invoiceNumber";
         reference: "reference";
         externalId: "externalId";
@@ -1076,6 +1078,7 @@ declare const importMappingSchema: z.ZodObject<{
             customer: "customer";
             supplier: "supplier";
             category: "category";
+            product: "product";
             invoiceNumber: "invoiceNumber";
             reference: "reference";
             externalId: "externalId";
@@ -1103,6 +1106,7 @@ declare const confirmMappingInputSchema: z.ZodObject<{
             customer: "customer";
             supplier: "supplier";
             category: "category";
+            product: "product";
             invoiceNumber: "invoiceNumber";
             reference: "reference";
             externalId: "externalId";
@@ -2553,6 +2557,7 @@ declare const insightSchema: z.ZodObject<{
         customer: "customer";
         supplier: "supplier";
         category: "category";
+        product: "product";
     }>>;
     supportingData: z.ZodRecord<z.ZodString, z.ZodNumber>;
     evidence: z.ZodNullable<z.ZodObject<{
@@ -2719,6 +2724,7 @@ declare const insightsResponseSchema: z.ZodObject<{
             customer: "customer";
             supplier: "supplier";
             category: "category";
+            product: "product";
         }>>;
         supportingData: z.ZodRecord<z.ZodString, z.ZodNumber>;
         evidence: z.ZodNullable<z.ZodObject<{
