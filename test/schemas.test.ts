@@ -216,6 +216,54 @@ describe('aiAnswerSchema', () => {
       }),
     ).toThrow()
   })
+
+  const answerCiting = (evidenceId: string | null) => ({
+    answer: 'x',
+    keyPoints: [{ type: 'FACT' as const, text: 'O valor mensal é 45.000,00 EUR.', evidenceId }],
+    evidence: [],
+    calculations: [],
+    assumptions: [],
+    recommendations: [],
+    followUpQuestions: [],
+    insufficientData: false,
+  })
+
+  it('accepts a citation to evidence the engine built', () => {
+    expect(() =>
+      aiAnswerSchema.parse(answerCiting('3f2504e0-4f89-41d3-9a0c-0305e82c3301')),
+    ).not.toThrow()
+  })
+
+  it('accepts a citation to a line of an attached document', () => {
+    /*
+     * The shape that used to be refused, and the refusal was invisible.
+     *
+     * The server extracts values from attachments and anchors each to its line,
+     * and the anti-hallucination guard accepts them. With `evidenceId` declared
+     * as a uuid, every answer that quoted a contract failed to parse **before**
+     * the guard ever ran — a legitimate citation, a real extraction, and a
+     * contract that said the wrong thing.
+     */
+    expect(() =>
+      aiAnswerSchema.parse(answerCiting('doc:3f2504e0-4f89-41d3-9a0c-0305e82c3301:6')),
+    ).not.toThrow()
+  })
+
+  it('accepts a citation to a document as a whole', () => {
+    // A claim about what a clause says has no line of figures behind it.
+    expect(() =>
+      aiAnswerSchema.parse(answerCiting('doc:3f2504e0-4f89-41d3-9a0c-0305e82c3301')),
+    ).not.toThrow()
+  })
+
+  it('still refuses anything that is neither', () => {
+    // The id reaches the server from a model's answer and leaves in a URL. Two
+    // shapes are described; a third is an invention, and an invented citation is
+    // exactly what §21 exists to erase.
+    expect(() => aiAnswerSchema.parse(answerCiting('doc:../../etc/passwd'))).toThrow()
+    expect(() => aiAnswerSchema.parse(answerCiting('REVENUE:2026-08'))).toThrow()
+    expect(() => aiAnswerSchema.parse(answerCiting('doc:not-a-uuid:6'))).toThrow()
+  })
 })
 
 describe('locales', () => {

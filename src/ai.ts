@@ -30,11 +30,39 @@ import { evidenceSchema, calculationSchema } from './evidence.js'
  * first. Without this separation, a plausible assumption gains the weight of an
  * audited datum.
  */
+/**
+ * What a statement may cite as its proof.
+ *
+ * Two shapes, because there are two kinds of proof and they are reached
+ * differently:
+ *
+ * - **A uuid** — evidence the engine built for this answer: the calculation, the
+ *   transaction count, the sample rows. It travels inside the answer's
+ *   `evidence` array, so it is resolved by looking there.
+ * - **`doc:<uuid>` or `doc:<uuid>:<line>`** — a value taken from a document the
+ *   user attached (§48), anchored to the line that contains it. It is resolved
+ *   by asking the server, because the document is not carried in the answer.
+ *
+ * ## Why the second shape had to be described here
+ *
+ * It already existed on the server, and this schema refused it. The guard was
+ * taught to accept a figure quoted from a contract, and then every answer that
+ * quoted one failed to parse before the guard ever saw it — the citation was
+ * legitimate, the extraction was real, and the contract said "uuid". A schema
+ * that does not describe what the system produces does not protect anything; it
+ * just fails somewhere less obvious.
+ */
+export const evidenceIdSchema = z.union([
+  idSchema,
+  z.string().regex(/^doc:[0-9a-fA-F-]{36}(:\d{1,7})?$/),
+])
+export type EvidenceId = z.infer<typeof evidenceIdSchema>
+
 export const keyPointSchema = z.object({
   type: aiResponseTypeSchema,
   text: z.string(),
   /** Present in FACT and CALCULATION. Absent is a sign of an unsupported statement. */
-  evidenceId: idSchema.nullable(),
+  evidenceId: evidenceIdSchema.nullable(),
 })
 export type KeyPoint = z.infer<typeof keyPointSchema>
 

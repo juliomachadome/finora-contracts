@@ -1047,11 +1047,15 @@ var insightFilterSchema = zod.z.object({
    */
   includeDismissed: zod.z.enum(["true", "false"]).default("false").transform((valor) => valor === "true")
 });
+var evidenceIdSchema = zod.z.union([
+  idSchema,
+  zod.z.string().regex(/^doc:[0-9a-fA-F-]{36}(:\d{1,7})?$/)
+]);
 var keyPointSchema = zod.z.object({
   type: aiResponseTypeSchema,
   text: zod.z.string(),
   /** Present in FACT and CALCULATION. Absent is a sign of an unsupported statement. */
-  evidenceId: idSchema.nullable()
+  evidenceId: evidenceIdSchema.nullable()
 });
 var assumptionSchema = zod.z.object({
   label: zod.z.string(),
@@ -1402,6 +1406,7 @@ exports.discoveredEntitySchema = discoveredEntitySchema;
 exports.discoveredFieldSchema = discoveredFieldSchema;
 exports.discoveredSchemaSchema = discoveredSchemaSchema;
 exports.emailSchema = emailSchema;
+exports.evidenceIdSchema = evidenceIdSchema;
 exports.evidenceSchema = evidenceSchema;
 exports.evidenceTransactionSchema = evidenceTransactionSchema;
 exports.exportFormatSchema = exportFormatSchema;
