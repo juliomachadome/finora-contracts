@@ -200,3 +200,64 @@ export const dashboardSummarySchema = z.object({
   shape: overviewShapeSchema.optional(),
 })
 export type DashboardSummary = z.infer<typeof dashboardSummarySchema>
+
+/**
+ * What kind of business this is, derived from the data (§34, T21).
+ *
+ * ## Why the signals travel with the archetype
+ *
+ * Because "recurring" on its own is an opinion with a label. The measurements
+ * behind it — 68% of revenue from customers billed in three of the last four
+ * months, at similar amounts — are what make it a derivation somebody can
+ * check, and checking is the whole product.
+ *
+ * ## Why `UNDETERMINED` is in the enum
+ *
+ * Four months of history do not distinguish project work from seasonal retail
+ * having a quiet spring. Declaring anyway would put a guess where every
+ * threshold downstream reads a fact. The reason travels too, because "we cannot
+ * tell yet" and "we cannot tell from this" send a person to different places.
+ */
+export const archetypeSchema = z.enum([
+  'RECURRING',
+  'PROJECT',
+  'RETAIL',
+  'INDUSTRY',
+  'UNDETERMINED',
+])
+export type Archetype = z.infer<typeof archetypeSchema>
+
+export const profileSignalIdSchema = z.enum([
+  'recurrence',
+  'churn',
+  'concentration',
+  'customerCount',
+  'ticketSpread',
+  'costStructure',
+  'dso',
+  'seasonality',
+])
+export type ProfileSignalId = z.infer<typeof profileSignalIdSchema>
+
+export const profileSignalSchema = z.object({
+  id: profileSignalIdSchema,
+  /** `null` when the data cannot answer. Never zero standing in for unknown. */
+  value: z.number().nullable(),
+  /** The numbers this was measured from, so the claim can be checked. */
+  detail: z.record(z.string(), z.number()),
+})
+export type ProfileSignal = z.infer<typeof profileSignalSchema>
+
+export const businessProfileSchema = z.object({
+  archetype: archetypeSchema,
+  /** Every signal, including the ones that came back `null`. */
+  signals: z.array(profileSignalSchema),
+  /** The signals that carried the decision. Empty when nothing was declared. */
+  because: z.array(profileSignalIdSchema),
+  undeterminedReason: z
+    .enum(['NOT_ENOUGH_HISTORY', 'NO_CUSTOMERS', 'TOO_CLOSE_TO_CALL'])
+    .nullable(),
+  period: periodSchema,
+  datasetVersion: z.number().int(),
+})
+export type BusinessProfile = z.infer<typeof businessProfileSchema>

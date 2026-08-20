@@ -918,6 +918,40 @@ var dashboardSummarySchema = zod.z.object({
   /** Optional so a response without a composed shape stays valid: the panel then uses the fixed order. */
   shape: overviewShapeSchema.optional()
 });
+var archetypeSchema = zod.z.enum([
+  "RECURRING",
+  "PROJECT",
+  "RETAIL",
+  "INDUSTRY",
+  "UNDETERMINED"
+]);
+var profileSignalIdSchema = zod.z.enum([
+  "recurrence",
+  "churn",
+  "concentration",
+  "customerCount",
+  "ticketSpread",
+  "costStructure",
+  "dso",
+  "seasonality"
+]);
+var profileSignalSchema = zod.z.object({
+  id: profileSignalIdSchema,
+  /** `null` when the data cannot answer. Never zero standing in for unknown. */
+  value: zod.z.number().nullable(),
+  /** The numbers this was measured from, so the claim can be checked. */
+  detail: zod.z.record(zod.z.string(), zod.z.number())
+});
+var businessProfileSchema = zod.z.object({
+  archetype: archetypeSchema,
+  /** Every signal, including the ones that came back `null`. */
+  signals: zod.z.array(profileSignalSchema),
+  /** The signals that carried the decision. Empty when nothing was declared. */
+  because: zod.z.array(profileSignalIdSchema),
+  undeterminedReason: zod.z.enum(["NOT_ENOUGH_HISTORY", "NO_CUSTOMERS", "TOO_CLOSE_TO_CALL"]).nullable(),
+  period: periodSchema,
+  datasetVersion: zod.z.number().int()
+});
 var calculationSchema = zod.z.object({
   metricId: metricIdSchema,
   period: periodSchema,
@@ -1381,6 +1415,7 @@ exports.aiTaskSchema = aiTaskSchema;
 exports.aiUsageSchema = aiUsageSchema;
 exports.aiUsageSummarySchema = aiUsageSummarySchema;
 exports.apiErrorSchema = apiErrorSchema;
+exports.archetypeSchema = archetypeSchema;
 exports.askInputSchema = askInputSchema;
 exports.assumptionSchema = assumptionSchema;
 exports.auditActionSchema = auditActionSchema;
@@ -1389,6 +1424,7 @@ exports.authResponseSchema = authResponseSchema;
 exports.brandingConfigSchema = brandingConfigSchema;
 exports.breakdownItemSchema = breakdownItemSchema;
 exports.budgetSchema = budgetSchema;
+exports.businessProfileSchema = businessProfileSchema;
 exports.calculationSchema = calculationSchema;
 exports.categorySchema = categorySchema;
 exports.changeItemSchema = changeItemSchema;
@@ -1477,6 +1513,8 @@ exports.planLimitsSchema = planLimitsSchema;
 exports.planSchema = planSchema;
 exports.planTierSchema = planTierSchema;
 exports.previewRowSchema = previewRowSchema;
+exports.profileSignalIdSchema = profileSignalIdSchema;
+exports.profileSignalSchema = profileSignalSchema;
 exports.recommendationSchema = recommendationSchema;
 exports.refreshInputSchema = refreshInputSchema;
 exports.reportMetadataSchema = reportMetadataSchema;
