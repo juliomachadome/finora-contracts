@@ -1633,7 +1633,7 @@ type LeadFilter = z.infer<typeof leadFilterSchema>;
  * metric to metric and lives in code; that one links metric to transactions and
  * to file rows, and is built by query. They touch at the leaves.
  */
-declare const METRIC_IDS: readonly ["REVENUE", "EXPENSES", "COGS", "OPEX", "CASH", "ACCOUNTS_RECEIVABLE", "ACCOUNTS_PAYABLE", "BUDGETED_EXPENSES", "GROSS_PROFIT", "GROSS_MARGIN", "OPERATING_PROFIT", "EBITDA", "EBITDA_MARGIN", "REVENUE_GROWTH", "EXPENSE_GROWTH", "CUSTOMER_CONCENTRATION", "BURN", "RUNWAY", "BUDGET_VARIANCE"];
+declare const METRIC_IDS: readonly ["REVENUE", "EXPENSES", "COGS", "OPEX", "CASH", "ACCOUNTS_RECEIVABLE", "ACCOUNTS_PAYABLE", "BUDGETED_EXPENSES", "GROSS_PROFIT", "GROSS_MARGIN", "OPERATING_PROFIT", "EBITDA", "EBITDA_MARGIN", "REVENUE_GROWTH", "EXPENSE_GROWTH", "CUSTOMER_CONCENTRATION", "BURN", "RUNWAY", "BUDGET_VARIANCE", "PIPELINE_OPEN", "PIPELINE_WEIGHTED", "DEALS_WON", "DEALS_LOST", "WIN_RATE"];
 declare const metricIdSchema: z.ZodEnum<{
     REVENUE: "REVENUE";
     CUSTOMER_CONCENTRATION: "CUSTOMER_CONCENTRATION";
@@ -1654,6 +1654,11 @@ declare const metricIdSchema: z.ZodEnum<{
     BURN: "BURN";
     RUNWAY: "RUNWAY";
     BUDGET_VARIANCE: "BUDGET_VARIANCE";
+    PIPELINE_OPEN: "PIPELINE_OPEN";
+    PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+    DEALS_WON: "DEALS_WON";
+    DEALS_LOST: "DEALS_LOST";
+    WIN_RATE: "WIN_RATE";
 }>;
 type MetricId = z.infer<typeof metricIdSchema>;
 /**
@@ -1699,6 +1704,11 @@ declare const metricNodeSpecSchema: z.ZodObject<{
         BURN: "BURN";
         RUNWAY: "RUNWAY";
         BUDGET_VARIANCE: "BUDGET_VARIANCE";
+        PIPELINE_OPEN: "PIPELINE_OPEN";
+        PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+        DEALS_WON: "DEALS_WON";
+        DEALS_LOST: "DEALS_LOST";
+        WIN_RATE: "WIN_RATE";
     }>;
     unit: z.ZodEnum<{
         MONEY: "MONEY";
@@ -1727,6 +1737,11 @@ declare const metricNodeSpecSchema: z.ZodObject<{
         BURN: "BURN";
         RUNWAY: "RUNWAY";
         BUDGET_VARIANCE: "BUDGET_VARIANCE";
+        PIPELINE_OPEN: "PIPELINE_OPEN";
+        PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+        DEALS_WON: "DEALS_WON";
+        DEALS_LOST: "DEALS_LOST";
+        WIN_RATE: "WIN_RATE";
     }>>;
     isLeaf: z.ZodBoolean;
     formula: z.ZodNullable<z.ZodString>;
@@ -1753,6 +1768,11 @@ declare const metricValueSchema: z.ZodObject<{
         BURN: "BURN";
         RUNWAY: "RUNWAY";
         BUDGET_VARIANCE: "BUDGET_VARIANCE";
+        PIPELINE_OPEN: "PIPELINE_OPEN";
+        PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+        DEALS_WON: "DEALS_WON";
+        DEALS_LOST: "DEALS_LOST";
+        WIN_RATE: "WIN_RATE";
     }>;
     period: z.ZodString;
     unit: z.ZodEnum<{
@@ -1803,6 +1823,11 @@ declare const varianceContributionSchema: z.ZodObject<{
         BURN: "BURN";
         RUNWAY: "RUNWAY";
         BUDGET_VARIANCE: "BUDGET_VARIANCE";
+        PIPELINE_OPEN: "PIPELINE_OPEN";
+        PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+        DEALS_WON: "DEALS_WON";
+        DEALS_LOST: "DEALS_LOST";
+        WIN_RATE: "WIN_RATE";
     }>>;
     entityId: z.ZodNullable<z.ZodString>;
     changeAbsolute: z.ZodNumber;
@@ -1850,6 +1875,11 @@ declare const metricQuerySchema: z.ZodObject<{
         BURN: "BURN";
         RUNWAY: "RUNWAY";
         BUDGET_VARIANCE: "BUDGET_VARIANCE";
+        PIPELINE_OPEN: "PIPELINE_OPEN";
+        PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+        DEALS_WON: "DEALS_WON";
+        DEALS_LOST: "DEALS_LOST";
+        WIN_RATE: "WIN_RATE";
     }>>>;
 }, z.core.$strip>;
 type MetricQuery = z.infer<typeof metricQuerySchema>;
@@ -1898,6 +1928,11 @@ declare const overviewShapeSchema: z.ZodObject<{
         BURN: "BURN";
         RUNWAY: "RUNWAY";
         BUDGET_VARIANCE: "BUDGET_VARIANCE";
+        PIPELINE_OPEN: "PIPELINE_OPEN";
+        PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+        DEALS_WON: "DEALS_WON";
+        DEALS_LOST: "DEALS_LOST";
+        WIN_RATE: "WIN_RATE";
     }>>;
     sections: z.ZodArray<z.ZodEnum<{
         METRICS: "METRICS";
@@ -1939,6 +1974,11 @@ declare const dashboardSummarySchema: z.ZodObject<{
             BURN: "BURN";
             RUNWAY: "RUNWAY";
             BUDGET_VARIANCE: "BUDGET_VARIANCE";
+            PIPELINE_OPEN: "PIPELINE_OPEN";
+            PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+            DEALS_WON: "DEALS_WON";
+            DEALS_LOST: "DEALS_LOST";
+            WIN_RATE: "WIN_RATE";
         }>;
         period: z.ZodString;
         unit: z.ZodEnum<{
@@ -1980,6 +2020,11 @@ declare const dashboardSummarySchema: z.ZodObject<{
             BURN: "BURN";
             RUNWAY: "RUNWAY";
             BUDGET_VARIANCE: "BUDGET_VARIANCE";
+            PIPELINE_OPEN: "PIPELINE_OPEN";
+            PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+            DEALS_WON: "DEALS_WON";
+            DEALS_LOST: "DEALS_LOST";
+            WIN_RATE: "WIN_RATE";
         }>>;
         sections: z.ZodArray<z.ZodEnum<{
             METRICS: "METRICS";
@@ -2127,6 +2172,11 @@ declare const calculationSchema: z.ZodObject<{
         BURN: "BURN";
         RUNWAY: "RUNWAY";
         BUDGET_VARIANCE: "BUDGET_VARIANCE";
+        PIPELINE_OPEN: "PIPELINE_OPEN";
+        PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+        DEALS_WON: "DEALS_WON";
+        DEALS_LOST: "DEALS_LOST";
+        WIN_RATE: "WIN_RATE";
     }>;
     period: z.ZodString;
     formula: z.ZodString;
@@ -2153,6 +2203,11 @@ declare const calculationSchema: z.ZodObject<{
             BURN: "BURN";
             RUNWAY: "RUNWAY";
             BUDGET_VARIANCE: "BUDGET_VARIANCE";
+            PIPELINE_OPEN: "PIPELINE_OPEN";
+            PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+            DEALS_WON: "DEALS_WON";
+            DEALS_LOST: "DEALS_LOST";
+            WIN_RATE: "WIN_RATE";
         }>>;
     }, z.core.$strip>>;
     result: z.ZodNumber;
@@ -2208,6 +2263,11 @@ declare const evidenceSchema: z.ZodObject<{
             BURN: "BURN";
             RUNWAY: "RUNWAY";
             BUDGET_VARIANCE: "BUDGET_VARIANCE";
+            PIPELINE_OPEN: "PIPELINE_OPEN";
+            PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+            DEALS_WON: "DEALS_WON";
+            DEALS_LOST: "DEALS_LOST";
+            WIN_RATE: "WIN_RATE";
         }>;
         period: z.ZodString;
         formula: z.ZodString;
@@ -2234,6 +2294,11 @@ declare const evidenceSchema: z.ZodObject<{
                 BURN: "BURN";
                 RUNWAY: "RUNWAY";
                 BUDGET_VARIANCE: "BUDGET_VARIANCE";
+                PIPELINE_OPEN: "PIPELINE_OPEN";
+                PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+                DEALS_WON: "DEALS_WON";
+                DEALS_LOST: "DEALS_LOST";
+                WIN_RATE: "WIN_RATE";
             }>>;
         }, z.core.$strip>>;
         result: z.ZodNumber;
@@ -2336,6 +2401,11 @@ declare const insightSchema: z.ZodObject<{
         BURN: "BURN";
         RUNWAY: "RUNWAY";
         BUDGET_VARIANCE: "BUDGET_VARIANCE";
+        PIPELINE_OPEN: "PIPELINE_OPEN";
+        PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+        DEALS_WON: "DEALS_WON";
+        DEALS_LOST: "DEALS_LOST";
+        WIN_RATE: "WIN_RATE";
     }>>;
     entityId: z.ZodNullable<z.ZodString>;
     dimension: z.ZodNullable<z.ZodEnum<{
@@ -2368,6 +2438,11 @@ declare const insightSchema: z.ZodObject<{
                 BURN: "BURN";
                 RUNWAY: "RUNWAY";
                 BUDGET_VARIANCE: "BUDGET_VARIANCE";
+                PIPELINE_OPEN: "PIPELINE_OPEN";
+                PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+                DEALS_WON: "DEALS_WON";
+                DEALS_LOST: "DEALS_LOST";
+                WIN_RATE: "WIN_RATE";
             }>;
             period: z.ZodString;
             formula: z.ZodString;
@@ -2394,6 +2469,11 @@ declare const insightSchema: z.ZodObject<{
                     BURN: "BURN";
                     RUNWAY: "RUNWAY";
                     BUDGET_VARIANCE: "BUDGET_VARIANCE";
+                    PIPELINE_OPEN: "PIPELINE_OPEN";
+                    PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+                    DEALS_WON: "DEALS_WON";
+                    DEALS_LOST: "DEALS_LOST";
+                    WIN_RATE: "WIN_RATE";
                 }>>;
             }, z.core.$strip>>;
             result: z.ZodNumber;
@@ -2487,6 +2567,11 @@ declare const insightsResponseSchema: z.ZodObject<{
             BURN: "BURN";
             RUNWAY: "RUNWAY";
             BUDGET_VARIANCE: "BUDGET_VARIANCE";
+            PIPELINE_OPEN: "PIPELINE_OPEN";
+            PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+            DEALS_WON: "DEALS_WON";
+            DEALS_LOST: "DEALS_LOST";
+            WIN_RATE: "WIN_RATE";
         }>>;
         entityId: z.ZodNullable<z.ZodString>;
         dimension: z.ZodNullable<z.ZodEnum<{
@@ -2519,6 +2604,11 @@ declare const insightsResponseSchema: z.ZodObject<{
                     BURN: "BURN";
                     RUNWAY: "RUNWAY";
                     BUDGET_VARIANCE: "BUDGET_VARIANCE";
+                    PIPELINE_OPEN: "PIPELINE_OPEN";
+                    PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+                    DEALS_WON: "DEALS_WON";
+                    DEALS_LOST: "DEALS_LOST";
+                    WIN_RATE: "WIN_RATE";
                 }>;
                 period: z.ZodString;
                 formula: z.ZodString;
@@ -2545,6 +2635,11 @@ declare const insightsResponseSchema: z.ZodObject<{
                         BURN: "BURN";
                         RUNWAY: "RUNWAY";
                         BUDGET_VARIANCE: "BUDGET_VARIANCE";
+                        PIPELINE_OPEN: "PIPELINE_OPEN";
+                        PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+                        DEALS_WON: "DEALS_WON";
+                        DEALS_LOST: "DEALS_LOST";
+                        WIN_RATE: "WIN_RATE";
                     }>>;
                 }, z.core.$strip>>;
                 result: z.ZodNumber;
@@ -2627,6 +2722,11 @@ declare const changeItemSchema: z.ZodObject<{
         BURN: "BURN";
         RUNWAY: "RUNWAY";
         BUDGET_VARIANCE: "BUDGET_VARIANCE";
+        PIPELINE_OPEN: "PIPELINE_OPEN";
+        PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+        DEALS_WON: "DEALS_WON";
+        DEALS_LOST: "DEALS_LOST";
+        WIN_RATE: "WIN_RATE";
     }>;
     unit: z.ZodString;
     current: z.ZodNumber;
@@ -2667,6 +2767,11 @@ declare const whatChangedResponseSchema: z.ZodObject<{
             BURN: "BURN";
             RUNWAY: "RUNWAY";
             BUDGET_VARIANCE: "BUDGET_VARIANCE";
+            PIPELINE_OPEN: "PIPELINE_OPEN";
+            PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+            DEALS_WON: "DEALS_WON";
+            DEALS_LOST: "DEALS_LOST";
+            WIN_RATE: "WIN_RATE";
         }>;
         unit: z.ZodString;
         current: z.ZodNumber;
@@ -2824,6 +2929,11 @@ declare const aiAnswerSchema: z.ZodObject<{
                 BURN: "BURN";
                 RUNWAY: "RUNWAY";
                 BUDGET_VARIANCE: "BUDGET_VARIANCE";
+                PIPELINE_OPEN: "PIPELINE_OPEN";
+                PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+                DEALS_WON: "DEALS_WON";
+                DEALS_LOST: "DEALS_LOST";
+                WIN_RATE: "WIN_RATE";
             }>;
             period: z.ZodString;
             formula: z.ZodString;
@@ -2850,6 +2960,11 @@ declare const aiAnswerSchema: z.ZodObject<{
                     BURN: "BURN";
                     RUNWAY: "RUNWAY";
                     BUDGET_VARIANCE: "BUDGET_VARIANCE";
+                    PIPELINE_OPEN: "PIPELINE_OPEN";
+                    PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+                    DEALS_WON: "DEALS_WON";
+                    DEALS_LOST: "DEALS_LOST";
+                    WIN_RATE: "WIN_RATE";
                 }>>;
             }, z.core.$strip>>;
             result: z.ZodNumber;
@@ -2900,6 +3015,11 @@ declare const aiAnswerSchema: z.ZodObject<{
             BURN: "BURN";
             RUNWAY: "RUNWAY";
             BUDGET_VARIANCE: "BUDGET_VARIANCE";
+            PIPELINE_OPEN: "PIPELINE_OPEN";
+            PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+            DEALS_WON: "DEALS_WON";
+            DEALS_LOST: "DEALS_LOST";
+            WIN_RATE: "WIN_RATE";
         }>;
         period: z.ZodString;
         formula: z.ZodString;
@@ -2926,6 +3046,11 @@ declare const aiAnswerSchema: z.ZodObject<{
                 BURN: "BURN";
                 RUNWAY: "RUNWAY";
                 BUDGET_VARIANCE: "BUDGET_VARIANCE";
+                PIPELINE_OPEN: "PIPELINE_OPEN";
+                PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+                DEALS_WON: "DEALS_WON";
+                DEALS_LOST: "DEALS_LOST";
+                WIN_RATE: "WIN_RATE";
             }>>;
         }, z.core.$strip>>;
         result: z.ZodNumber;
@@ -2987,6 +3112,11 @@ declare const aiMessageSchema: z.ZodObject<{
                     BURN: "BURN";
                     RUNWAY: "RUNWAY";
                     BUDGET_VARIANCE: "BUDGET_VARIANCE";
+                    PIPELINE_OPEN: "PIPELINE_OPEN";
+                    PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+                    DEALS_WON: "DEALS_WON";
+                    DEALS_LOST: "DEALS_LOST";
+                    WIN_RATE: "WIN_RATE";
                 }>;
                 period: z.ZodString;
                 formula: z.ZodString;
@@ -3013,6 +3143,11 @@ declare const aiMessageSchema: z.ZodObject<{
                         BURN: "BURN";
                         RUNWAY: "RUNWAY";
                         BUDGET_VARIANCE: "BUDGET_VARIANCE";
+                        PIPELINE_OPEN: "PIPELINE_OPEN";
+                        PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+                        DEALS_WON: "DEALS_WON";
+                        DEALS_LOST: "DEALS_LOST";
+                        WIN_RATE: "WIN_RATE";
                     }>>;
                 }, z.core.$strip>>;
                 result: z.ZodNumber;
@@ -3063,6 +3198,11 @@ declare const aiMessageSchema: z.ZodObject<{
                 BURN: "BURN";
                 RUNWAY: "RUNWAY";
                 BUDGET_VARIANCE: "BUDGET_VARIANCE";
+                PIPELINE_OPEN: "PIPELINE_OPEN";
+                PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+                DEALS_WON: "DEALS_WON";
+                DEALS_LOST: "DEALS_LOST";
+                WIN_RATE: "WIN_RATE";
             }>;
             period: z.ZodString;
             formula: z.ZodString;
@@ -3089,6 +3229,11 @@ declare const aiMessageSchema: z.ZodObject<{
                     BURN: "BURN";
                     RUNWAY: "RUNWAY";
                     BUDGET_VARIANCE: "BUDGET_VARIANCE";
+                    PIPELINE_OPEN: "PIPELINE_OPEN";
+                    PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+                    DEALS_WON: "DEALS_WON";
+                    DEALS_LOST: "DEALS_LOST";
+                    WIN_RATE: "WIN_RATE";
                 }>>;
             }, z.core.$strip>>;
             result: z.ZodNumber;
@@ -3241,6 +3386,11 @@ declare const scenarioImpactSchema: z.ZodObject<{
         BURN: "BURN";
         RUNWAY: "RUNWAY";
         BUDGET_VARIANCE: "BUDGET_VARIANCE";
+        PIPELINE_OPEN: "PIPELINE_OPEN";
+        PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+        DEALS_WON: "DEALS_WON";
+        DEALS_LOST: "DEALS_LOST";
+        WIN_RATE: "WIN_RATE";
     }>;
     baseline: z.ZodNumber;
     projected: z.ZodNumber;
@@ -3282,6 +3432,11 @@ declare const scenarioResultSchema: z.ZodObject<{
             BURN: "BURN";
             RUNWAY: "RUNWAY";
             BUDGET_VARIANCE: "BUDGET_VARIANCE";
+            PIPELINE_OPEN: "PIPELINE_OPEN";
+            PIPELINE_WEIGHTED: "PIPELINE_WEIGHTED";
+            DEALS_WON: "DEALS_WON";
+            DEALS_LOST: "DEALS_LOST";
+            WIN_RATE: "WIN_RATE";
         }>;
         baseline: z.ZodNumber;
         projected: z.ZodNumber;

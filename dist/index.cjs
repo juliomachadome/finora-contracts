@@ -830,7 +830,26 @@ var METRIC_IDS = [
   "CUSTOMER_CONCENTRATION",
   "BURN",
   "RUNWAY",
-  "BUDGET_VARIANCE"
+  "BUDGET_VARIANCE",
+  /*
+   * Commercial (§M8, T24).
+   *
+   * The pipeline was built as its own module with a good seam to the financial
+   * side at conversion, and **none of it was a node of this graph**. The
+   * consequence was not cosmetic: an area is not a separate graph, it is a set
+   * of target metrics whose graph is `requiredFor(targets)` — so with nothing
+   * commercial in here, sales and marketing objectives had nothing to attach
+   * to.
+   *
+   * Two graphs would have been the worse answer: two definitions of revenue
+   * that one day disagree. Cuts share the edges, and it is that sharing the
+   * arbiter walks to return a trade-off.
+   */
+  "PIPELINE_OPEN",
+  "PIPELINE_WEIGHTED",
+  "DEALS_WON",
+  "DEALS_LOST",
+  "WIN_RATE"
 ];
 var metricIdSchema = zod.z.enum(METRIC_IDS);
 var METRIC_UNITS = ["MONEY", "PERCENT", "MONTHS", "RATIO", "COUNT"];
