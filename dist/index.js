@@ -969,6 +969,63 @@ var businessProfileSchema = z.object({
   period: periodSchema,
   datasetVersion: z.number().int()
 });
+var CANVAS_BLOCKS = [
+  // Derived — computed on read, never stored, so they cannot drift from the
+  // numbers they came from.
+  "partners",
+  "segments",
+  "costStructure",
+  "revenueStreams",
+  // Declared — not in the data, and not for a model to guess.
+  "valueProposition",
+  "keyActivities",
+  "keyResources",
+  "customerRelationships",
+  "channels"
+];
+var canvasBlockIdSchema = z.enum(CANVAS_BLOCKS);
+var canvasEvidenceSchema = z.object({
+  label: z.string(),
+  /** Cents when the block is about money, a plain number otherwise. */
+  value: z.number(),
+  /** Share of the block's total, 0–100. `null` when a share means nothing here. */
+  share: z.number().nullable()
+});
+var canvasBlockSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("DERIVED"),
+    id: canvasBlockIdSchema,
+    /** The signal that supports it. Empty when the data has nothing to say yet. */
+    evidence: z.array(canvasEvidenceSchema),
+    /** `MONEY` when the values are cents, `COUNT` when they are things. */
+    unit: z.enum(["MONEY", "COUNT", "PERCENT"])
+  }),
+  z.object({
+    kind: z.literal("DECLARED"),
+    id: canvasBlockIdSchema,
+    /** `null` means nobody has written it. Never a placeholder sentence. */
+    content: z.string().nullable(),
+    authorName: z.string().nullable(),
+    updatedAt: isoDateTimeSchema.nullable()
+  })
+]);
+var businessCanvasSchema = z.object({
+  blocks: z.array(canvasBlockSchema),
+  period: periodSchema,
+  currency: currencySchema,
+  datasetVersion: z.number().int()
+});
+var declareCanvasBlockSchema = z.object({
+  block: z.enum(["valueProposition", "keyActivities", "keyResources", "customerRelationships", "channels"]),
+  /**
+   * Bounded, and deliberately short.
+   *
+   * A canvas block is a sentence, not a document. Six hundred characters is
+   * about a paragraph — enough to say what the business does and too little to
+   * turn the box into a place where strategy goes to be forgotten.
+   */
+  content: z.string().trim().min(1).max(600)
+});
 var calculationSchema = z.object({
   metricId: metricIdSchema,
   period: periodSchema,
@@ -1378,4 +1435,4 @@ var usageSummarySchema = z.object({
   })
 });
 
-export { ACTIVITY_SUBJECTS, ACTIVITY_TYPES, AI_PROVIDER_KINDS, AI_RESPONSE_TYPES, AI_RETENTION_POLICIES, AI_TASKS, AUDIT_ACTIONS, CONNECTOR_CAPABILITIES, CUSTOMER_STATUSES, DATA_CLASSES, DATA_QUALITY_ISSUE_TYPES, DATA_SOURCE_KINDS, DEFAULT_LOCALE, EXPORT_FORMATS, FORECAST_SCENARIOS, IMPORT_STATES, IMPORT_TRIGGERS, INSIGHT_TYPES, LEAD_STATUSES, LOCALES, METRIC_IDS, METRIC_UNITS, OPPORTUNITY_STAGES, OVERVIEW_SECTIONS, PASSWORD_MIN_LENGTH, PAYMENT_PROVIDERS, PERIOD_GRANULARITIES, PERMISSIONS, PLAN_TIERS, REPORT_SECTION_KINDS, ROLES, ROLE_PERMISSIONS, SCENARIO_TYPES, SEVERITIES, SUBSCRIPTION_STATUSES, TARGET_FIELDS, TRANSACTION_TYPES, activitySchema, activitySubjectSchema, activityTypeSchema, actualPointSchema, aiAnswerSchema, aiConversationSchema, aiMessageSchema, aiPrivacyStatusSchema, aiProviderConfigSchema, aiProviderKindSchema, aiRecommendationSchema, aiResponseTypeSchema, aiRetentionPolicySchema, aiTaskSchema, aiUsageSchema, aiUsageSummarySchema, apiErrorSchema, archetypeSchema, askInputSchema, assumptionSchema, auditActionSchema, auditEventSchema, authResponseSchema, brandingConfigSchema, breakdownItemSchema, budgetSchema, businessProfileSchema, calculationSchema, categorySchema, changeItemSchema, checkoutSessionSchema, columnMappingSchema, confirmMappingInputSchema, connectionHealthSchema, connectorCapabilitySchema, createCheckoutInputSchema, createLeadInputSchema, createOpportunityInputSchema, currencySchema, customerSchema, customerStatusSchema, dashboardSummarySchema, dataClassSchema, dataQualityIssueSchema, dataQualityIssueTypeSchema, dataQualitySummarySchema, dataSourceKindSchema, dataSourceSchema, datasetSchema, deltaSchema, discoveredEntitySchema, discoveredFieldSchema, discoveredSchemaSchema, emailSchema, evidenceIdSchema, evidenceSchema, evidenceTransactionSchema, exportFormatSchema, exportRequestSchema, exportResultSchema, forecastPointSchema, forecastScenarioSchema, forecastSchema, generateReportInputSchema, idSchema, importFilterSchema, importMappingSchema, importPreviewSchema, importProgressSchema, importSchema, importStateSchema, importTriggerSchema, insightFilterSchema, insightSchema, insightTypeSchema, insightsResponseSchema, inviteMemberInputSchema, isoDateSchema, isoDateTimeSchema, keyPointSchema, leadFilterSchema, leadSchema, leadStatusSchema, lineageRefSchema, localeSchema, loginInputSchema, memberSchema, membershipSchema, metricIdSchema, metricNodeSpecSchema, metricQuerySchema, metricUnitSchema, metricValueSchema, moneySchema, opportunitySchema, opportunityStageSchema, organizationSchema, organizationSettingsSchema, overviewSectionSchema, overviewShapeSchema, paginatedSchema, paginationQuerySchema, partnerSchema, passwordSchema, paymentProviderSchema, percentageSchema, periodGranularitySchema, periodRangeSchema, periodSchema, permissionSchema, pipelineSummarySchema, planLimitsSchema, planSchema, planTierSchema, previewRowSchema, profileSignalIdSchema, profileSignalSchema, recommendationSchema, refreshInputSchema, reportMetadataSchema, reportSchema, reportSectionKindSchema, reportSectionSchema, requestPasswordResetInputSchema, resetPasswordInputSchema, roleSchema, scenarioImpactSchema, scenarioInputSchema, scenarioResultSchema, scenarioTypeSchema, sessionOrganizationSchema, sessionUserSchema, severitySchema, signupInputSchema, subscriptionSchema, subscriptionStatusSchema, supplierSchema, syncCursorSchema, targetFieldSchema, timeSeriesPointSchema, tokenPairSchema, transactionFilterSchema, transactionSchema, transactionTypeSchema, updateLeadInputSchema, updateOrganizationSettingsInputSchema, upsertAIProviderConfigInputSchema, usageSummarySchema, varianceContributionSchema, varianceTreeSchema, whatChangedResponseSchema };
+export { ACTIVITY_SUBJECTS, ACTIVITY_TYPES, AI_PROVIDER_KINDS, AI_RESPONSE_TYPES, AI_RETENTION_POLICIES, AI_TASKS, AUDIT_ACTIONS, CANVAS_BLOCKS, CONNECTOR_CAPABILITIES, CUSTOMER_STATUSES, DATA_CLASSES, DATA_QUALITY_ISSUE_TYPES, DATA_SOURCE_KINDS, DEFAULT_LOCALE, EXPORT_FORMATS, FORECAST_SCENARIOS, IMPORT_STATES, IMPORT_TRIGGERS, INSIGHT_TYPES, LEAD_STATUSES, LOCALES, METRIC_IDS, METRIC_UNITS, OPPORTUNITY_STAGES, OVERVIEW_SECTIONS, PASSWORD_MIN_LENGTH, PAYMENT_PROVIDERS, PERIOD_GRANULARITIES, PERMISSIONS, PLAN_TIERS, REPORT_SECTION_KINDS, ROLES, ROLE_PERMISSIONS, SCENARIO_TYPES, SEVERITIES, SUBSCRIPTION_STATUSES, TARGET_FIELDS, TRANSACTION_TYPES, activitySchema, activitySubjectSchema, activityTypeSchema, actualPointSchema, aiAnswerSchema, aiConversationSchema, aiMessageSchema, aiPrivacyStatusSchema, aiProviderConfigSchema, aiProviderKindSchema, aiRecommendationSchema, aiResponseTypeSchema, aiRetentionPolicySchema, aiTaskSchema, aiUsageSchema, aiUsageSummarySchema, apiErrorSchema, archetypeSchema, askInputSchema, assumptionSchema, auditActionSchema, auditEventSchema, authResponseSchema, brandingConfigSchema, breakdownItemSchema, budgetSchema, businessCanvasSchema, businessProfileSchema, calculationSchema, canvasBlockIdSchema, canvasBlockSchema, canvasEvidenceSchema, categorySchema, changeItemSchema, checkoutSessionSchema, columnMappingSchema, confirmMappingInputSchema, connectionHealthSchema, connectorCapabilitySchema, createCheckoutInputSchema, createLeadInputSchema, createOpportunityInputSchema, currencySchema, customerSchema, customerStatusSchema, dashboardSummarySchema, dataClassSchema, dataQualityIssueSchema, dataQualityIssueTypeSchema, dataQualitySummarySchema, dataSourceKindSchema, dataSourceSchema, datasetSchema, declareCanvasBlockSchema, deltaSchema, discoveredEntitySchema, discoveredFieldSchema, discoveredSchemaSchema, emailSchema, evidenceIdSchema, evidenceSchema, evidenceTransactionSchema, exportFormatSchema, exportRequestSchema, exportResultSchema, forecastPointSchema, forecastScenarioSchema, forecastSchema, generateReportInputSchema, idSchema, importFilterSchema, importMappingSchema, importPreviewSchema, importProgressSchema, importSchema, importStateSchema, importTriggerSchema, insightFilterSchema, insightSchema, insightTypeSchema, insightsResponseSchema, inviteMemberInputSchema, isoDateSchema, isoDateTimeSchema, keyPointSchema, leadFilterSchema, leadSchema, leadStatusSchema, lineageRefSchema, localeSchema, loginInputSchema, memberSchema, membershipSchema, metricIdSchema, metricNodeSpecSchema, metricQuerySchema, metricUnitSchema, metricValueSchema, moneySchema, opportunitySchema, opportunityStageSchema, organizationSchema, organizationSettingsSchema, overviewSectionSchema, overviewShapeSchema, paginatedSchema, paginationQuerySchema, partnerSchema, passwordSchema, paymentProviderSchema, percentageSchema, periodGranularitySchema, periodRangeSchema, periodSchema, permissionSchema, pipelineSummarySchema, planLimitsSchema, planSchema, planTierSchema, previewRowSchema, profileSignalIdSchema, profileSignalSchema, recommendationSchema, refreshInputSchema, reportMetadataSchema, reportSchema, reportSectionKindSchema, reportSectionSchema, requestPasswordResetInputSchema, resetPasswordInputSchema, roleSchema, scenarioImpactSchema, scenarioInputSchema, scenarioResultSchema, scenarioTypeSchema, sessionOrganizationSchema, sessionUserSchema, severitySchema, signupInputSchema, subscriptionSchema, subscriptionStatusSchema, supplierSchema, syncCursorSchema, targetFieldSchema, timeSeriesPointSchema, tokenPairSchema, transactionFilterSchema, transactionSchema, transactionTypeSchema, updateLeadInputSchema, updateOrganizationSettingsInputSchema, upsertAIProviderConfigInputSchema, usageSummarySchema, varianceContributionSchema, varianceTreeSchema, whatChangedResponseSchema };

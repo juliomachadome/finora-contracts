@@ -971,6 +971,63 @@ var businessProfileSchema = zod.z.object({
   period: periodSchema,
   datasetVersion: zod.z.number().int()
 });
+var CANVAS_BLOCKS = [
+  // Derived — computed on read, never stored, so they cannot drift from the
+  // numbers they came from.
+  "partners",
+  "segments",
+  "costStructure",
+  "revenueStreams",
+  // Declared — not in the data, and not for a model to guess.
+  "valueProposition",
+  "keyActivities",
+  "keyResources",
+  "customerRelationships",
+  "channels"
+];
+var canvasBlockIdSchema = zod.z.enum(CANVAS_BLOCKS);
+var canvasEvidenceSchema = zod.z.object({
+  label: zod.z.string(),
+  /** Cents when the block is about money, a plain number otherwise. */
+  value: zod.z.number(),
+  /** Share of the block's total, 0–100. `null` when a share means nothing here. */
+  share: zod.z.number().nullable()
+});
+var canvasBlockSchema = zod.z.discriminatedUnion("kind", [
+  zod.z.object({
+    kind: zod.z.literal("DERIVED"),
+    id: canvasBlockIdSchema,
+    /** The signal that supports it. Empty when the data has nothing to say yet. */
+    evidence: zod.z.array(canvasEvidenceSchema),
+    /** `MONEY` when the values are cents, `COUNT` when they are things. */
+    unit: zod.z.enum(["MONEY", "COUNT", "PERCENT"])
+  }),
+  zod.z.object({
+    kind: zod.z.literal("DECLARED"),
+    id: canvasBlockIdSchema,
+    /** `null` means nobody has written it. Never a placeholder sentence. */
+    content: zod.z.string().nullable(),
+    authorName: zod.z.string().nullable(),
+    updatedAt: isoDateTimeSchema.nullable()
+  })
+]);
+var businessCanvasSchema = zod.z.object({
+  blocks: zod.z.array(canvasBlockSchema),
+  period: periodSchema,
+  currency: currencySchema,
+  datasetVersion: zod.z.number().int()
+});
+var declareCanvasBlockSchema = zod.z.object({
+  block: zod.z.enum(["valueProposition", "keyActivities", "keyResources", "customerRelationships", "channels"]),
+  /**
+   * Bounded, and deliberately short.
+   *
+   * A canvas block is a sentence, not a document. Six hundred characters is
+   * about a paragraph — enough to say what the business does and too little to
+   * turn the box into a place where strategy goes to be forgotten.
+   */
+  content: zod.z.string().trim().min(1).max(600)
+});
 var calculationSchema = zod.z.object({
   metricId: metricIdSchema,
   period: periodSchema,
@@ -1387,6 +1444,7 @@ exports.AI_RESPONSE_TYPES = AI_RESPONSE_TYPES;
 exports.AI_RETENTION_POLICIES = AI_RETENTION_POLICIES;
 exports.AI_TASKS = AI_TASKS;
 exports.AUDIT_ACTIONS = AUDIT_ACTIONS;
+exports.CANVAS_BLOCKS = CANVAS_BLOCKS;
 exports.CONNECTOR_CAPABILITIES = CONNECTOR_CAPABILITIES;
 exports.CUSTOMER_STATUSES = CUSTOMER_STATUSES;
 exports.DATA_CLASSES = DATA_CLASSES;
@@ -1443,8 +1501,12 @@ exports.authResponseSchema = authResponseSchema;
 exports.brandingConfigSchema = brandingConfigSchema;
 exports.breakdownItemSchema = breakdownItemSchema;
 exports.budgetSchema = budgetSchema;
+exports.businessCanvasSchema = businessCanvasSchema;
 exports.businessProfileSchema = businessProfileSchema;
 exports.calculationSchema = calculationSchema;
+exports.canvasBlockIdSchema = canvasBlockIdSchema;
+exports.canvasBlockSchema = canvasBlockSchema;
+exports.canvasEvidenceSchema = canvasEvidenceSchema;
 exports.categorySchema = categorySchema;
 exports.changeItemSchema = changeItemSchema;
 exports.checkoutSessionSchema = checkoutSessionSchema;
@@ -1466,6 +1528,7 @@ exports.dataQualitySummarySchema = dataQualitySummarySchema;
 exports.dataSourceKindSchema = dataSourceKindSchema;
 exports.dataSourceSchema = dataSourceSchema;
 exports.datasetSchema = datasetSchema;
+exports.declareCanvasBlockSchema = declareCanvasBlockSchema;
 exports.deltaSchema = deltaSchema;
 exports.discoveredEntitySchema = discoveredEntitySchema;
 exports.discoveredFieldSchema = discoveredFieldSchema;

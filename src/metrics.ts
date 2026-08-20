@@ -1,5 +1,11 @@
 import { z } from 'zod'
-import { currencySchema, deltaSchema, idSchema, periodSchema } from './api.js'
+import {
+  currencySchema,
+  deltaSchema,
+  idSchema,
+  isoDateTimeSchema,
+  periodSchema,
+} from './api.js'
 
 /**
  * Metrics as a directed acyclic graph.
@@ -280,3 +286,94 @@ export const businessProfileSchema = z.object({
   datasetVersion: z.number().int(),
 })
 export type BusinessProfile = z.infer<typeof businessProfileSchema>
+
+/**
+ * The Business Model Canvas, half derived and half declared (§34, T26).
+ *
+ * ## Why the halves are marked, and never mixed
+ *
+ * Four blocks come out of the transactions — partners from suppliers, segments
+ * from customer concentration, cost structure from the COGS/OPEX split, revenue
+ * streams from recurrence and mix. Five do not, and never will: value
+ * proposition, key activities, key resources, customer relationships, channels.
+ *
+ * Filling those five with a model would be invention on the first screen a
+ * customer sees, and it would contradict the one rule this product sells. They
+ * arrive **empty**, and `kind` is what stops a screen from ever drawing the two
+ * halves the same way — the reader has to be able to tell "we measured this"
+ * from "somebody wrote this" without being told.
+ *
+ * ## Why empty is the feature
+ *
+ * An empty block is an invitation to declare what only this person knows, and
+ * what they write there becomes the input to objectives by area. Onboarding
+ * stops being "ingest a file" and starts producing strategic context.
+ */
+export const CANVAS_BLOCKS = [
+  // Derived — computed on read, never stored, so they cannot drift from the
+  // numbers they came from.
+  'partners',
+  'segments',
+  'costStructure',
+  'revenueStreams',
+  // Declared — not in the data, and not for a model to guess.
+  'valueProposition',
+  'keyActivities',
+  'keyResources',
+  'customerRelationships',
+  'channels',
+] as const
+export const canvasBlockIdSchema = z.enum(CANVAS_BLOCKS)
+export type CanvasBlockId = z.infer<typeof canvasBlockIdSchema>
+
+/** One measured line inside a derived block: what it is, and what it is worth. */
+export const canvasEvidenceSchema = z.object({
+  label: z.string(),
+  /** Cents when the block is about money, a plain number otherwise. */
+  value: z.number(),
+  /** Share of the block's total, 0–100. `null` when a share means nothing here. */
+  share: z.number().nullable(),
+})
+export type CanvasEvidence = z.infer<typeof canvasEvidenceSchema>
+
+export const canvasBlockSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('DERIVED'),
+    id: canvasBlockIdSchema,
+    /** The signal that supports it. Empty when the data has nothing to say yet. */
+    evidence: z.array(canvasEvidenceSchema),
+    /** `MONEY` when the values are cents, `COUNT` when they are things. */
+    unit: z.enum(['MONEY', 'COUNT', 'PERCENT']),
+  }),
+  z.object({
+    kind: z.literal('DECLARED'),
+    id: canvasBlockIdSchema,
+    /** `null` means nobody has written it. Never a placeholder sentence. */
+    content: z.string().nullable(),
+    authorName: z.string().nullable(),
+    updatedAt: isoDateTimeSchema.nullable(),
+  }),
+])
+export type CanvasBlock = z.infer<typeof canvasBlockSchema>
+
+export const businessCanvasSchema = z.object({
+  blocks: z.array(canvasBlockSchema),
+  period: periodSchema,
+  currency: currencySchema,
+  datasetVersion: z.number().int(),
+})
+export type BusinessCanvas = z.infer<typeof businessCanvasSchema>
+
+/** Writing one of the five declared blocks. */
+export const declareCanvasBlockSchema = z.object({
+  block: z.enum(['valueProposition', 'keyActivities', 'keyResources', 'customerRelationships', 'channels']),
+  /**
+   * Bounded, and deliberately short.
+   *
+   * A canvas block is a sentence, not a document. Six hundred characters is
+   * about a paragraph — enough to say what the business does and too little to
+   * turn the box into a place where strategy goes to be forgotten.
+   */
+  content: z.string().trim().min(1).max(600),
+})
+export type DeclareCanvasBlock = z.infer<typeof declareCanvasBlockSchema>
