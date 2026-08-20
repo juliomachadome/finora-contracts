@@ -1182,6 +1182,13 @@ var scenarioResultSchema = zod.z.object({
   datasetVersion: zod.z.number().int(),
   createdAt: isoDateTimeSchema
 });
+var actualPointSchema = zod.z.object({
+  period: periodSchema,
+  revenue: zod.z.number().int(),
+  expenses: zod.z.number().int(),
+  grossProfit: zod.z.number().int(),
+  cash: zod.z.number().int().nullable()
+});
 var forecastPointSchema = zod.z.object({
   period: periodSchema,
   scenario: forecastScenarioSchema,
@@ -1196,6 +1203,8 @@ var forecastSchema = zod.z.object({
   horizonMonths: zod.z.number().int(),
   currency: currencySchema,
   points: zod.z.array(forecastPointSchema),
+  /** The months the trend was fitted to, oldest first. Never empty. */
+  history: zod.z.array(actualPointSchema),
   assumptions: zod.z.array(assumptionSchema),
   datasetVersion: zod.z.number().int()
 });
@@ -1358,6 +1367,7 @@ exports.TRANSACTION_TYPES = TRANSACTION_TYPES;
 exports.activitySchema = activitySchema;
 exports.activitySubjectSchema = activitySubjectSchema;
 exports.activityTypeSchema = activityTypeSchema;
+exports.actualPointSchema = actualPointSchema;
 exports.aiAnswerSchema = aiAnswerSchema;
 exports.aiConversationSchema = aiConversationSchema;
 exports.aiMessageSchema = aiMessageSchema;

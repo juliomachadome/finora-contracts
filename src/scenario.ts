@@ -60,6 +60,36 @@ export const scenarioResultSchema = z.object({
 })
 export type ScenarioResult = z.infer<typeof scenarioResultSchema>
 
+/**
+ * A month that actually happened.
+ *
+ * ## Why the forecast carries its own history
+ *
+ * Because without it the projection cannot be read. A chart that begins at the
+ * first projected month is a line with nothing to compare itself against, and
+ * every such line looks equally reasonable.
+ *
+ * The trend is a least-squares fit over the whole window, which weighs every
+ * month the same — so a fall in the last two months arrives at the projection
+ * diluted, and the line can quite legitimately start *above* the month that just
+ * happened. That is a declared property of the method and not a defect, but a
+ * reader who cannot see the join has no way to know it is there. Stating it in
+ * the assumptions was not enough: it is a sentence, and this is a shape.
+ *
+ * Sent with the forecast rather than fetched separately because the two have to
+ * agree. Two requests can return two different `datasetVersion`s, and a history
+ * one import older than the projection drawn against it is a kink nobody put
+ * there.
+ */
+export const actualPointSchema = z.object({
+  period: periodSchema,
+  revenue: z.number().int(),
+  expenses: z.number().int(),
+  grossProfit: z.number().int(),
+  cash: z.number().int().nullable(),
+})
+export type ActualPoint = z.infer<typeof actualPointSchema>
+
 export const forecastPointSchema = z.object({
   period: periodSchema,
   scenario: forecastScenarioSchema,
@@ -82,6 +112,8 @@ export const forecastSchema = z.object({
   horizonMonths: z.number().int(),
   currency: currencySchema,
   points: z.array(forecastPointSchema),
+  /** The months the trend was fitted to, oldest first. Never empty. */
+  history: z.array(actualPointSchema),
   assumptions: z.array(assumptionSchema),
   datasetVersion: z.number().int(),
 })

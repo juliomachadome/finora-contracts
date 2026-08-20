@@ -197,6 +197,30 @@ describe('forecastSchema', () => {
         horizonMonths: 12,
         currency: 'EUR',
         points: [point],
+        history: [],
+        datasetVersion: 4,
+      }),
+    ).toThrow()
+  })
+
+  it('refuses a forecast that arrives without the months it was fitted to', () => {
+    /*
+     * The projection is unreadable on its own.
+     *
+     * The trend is least squares over the whole window, weighing every month
+     * the same, so it can start above the month that just happened. Whoever
+     * reads the chart has to be able to see the join — and they can only see it
+     * if the history travels with the projection. Making the field required is
+     * what stops a future endpoint from quietly omitting it.
+     */
+    expect(() =>
+      forecastSchema.parse({
+        organizationId: UUID,
+        generatedFrom: '2026-07',
+        horizonMonths: 12,
+        currency: 'EUR',
+        points: [point],
+        assumptions: [],
         datasetVersion: 4,
       }),
     ).toThrow()
