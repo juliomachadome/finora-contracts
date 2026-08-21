@@ -70,6 +70,20 @@ export const METRIC_IDS = [
   'DEALS_WON',
   'DEALS_LOST',
   'WIN_RATE',
+  /*
+   * Inventory (§107, T38).
+   *
+   * The module that exists to prove the entitlement seam, and that earns its
+   * place: a shop that does not know which product makes money is the same
+   * blindness `product` was added to remove, one level down.
+   *
+   * Stock **value** and days of inventory are absent, and deliberately: a stock
+   * level is a position, a position needs a file the ingestion does not accept,
+   * and declaring a node nothing can feed is a metric that is permanently a
+   * dash.
+   */
+  'UNITS_SOLD',
+  'MARGIN_PER_UNIT',
 ] as const
 export const metricIdSchema = z.enum(METRIC_IDS)
 export type MetricId = z.infer<typeof metricIdSchema>
