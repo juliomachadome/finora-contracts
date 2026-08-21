@@ -900,7 +900,23 @@ var METRIC_IDS = [
    * bicycle. Plausible arithmetic, meaningless number.
    */
   "QUANTIFIED_REVENUE",
-  "MARGIN_PER_UNIT"
+  "MARGIN_PER_UNIT",
+  /*
+   * Marketing (§34, T32).
+   *
+   * `ACQUISITION_SPEND` is a leaf and it is **declared**, not inferred: it sums
+   * the expenses in the categories a human marked as acquisition cost. Deriving
+   * it from category names would put a number a founder quotes to an investor
+   * on top of a string match.
+   *
+   * `NEW_CUSTOMERS` counts whoever invoiced for the **first time ever**, not
+   * for the first time this year. A customer who comes back after a quiet
+   * quarter was not acquired again, and counting them would make the cost of
+   * acquisition fall every time somebody returned.
+   */
+  "ACQUISITION_SPEND",
+  "NEW_CUSTOMERS",
+  "CAC"
 ];
 var metricIdSchema = zod.z.enum(METRIC_IDS);
 var METRIC_UNITS = [
@@ -1493,7 +1509,7 @@ var planLimitsSchema = zod.z.object({
    * engine would end the claim that the AI interprets and never calculates.
    * This is a row in a table.
    */
-  modules: zod.z.array(zod.z.enum(["COMMERCIAL", "INVENTORY"])).default([])
+  modules: zod.z.array(zod.z.enum(["COMMERCIAL", "INVENTORY", "MARKETING"])).default([])
 });
 var planSchema = zod.z.object({
   tier: planTierSchema,

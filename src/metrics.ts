@@ -94,6 +94,22 @@ export const METRIC_IDS = [
    */
   'QUANTIFIED_REVENUE',
   'MARGIN_PER_UNIT',
+  /*
+   * Marketing (§34, T32).
+   *
+   * `ACQUISITION_SPEND` is a leaf and it is **declared**, not inferred: it sums
+   * the expenses in the categories a human marked as acquisition cost. Deriving
+   * it from category names would put a number a founder quotes to an investor
+   * on top of a string match.
+   *
+   * `NEW_CUSTOMERS` counts whoever invoiced for the **first time ever**, not
+   * for the first time this year. A customer who comes back after a quiet
+   * quarter was not acquired again, and counting them would make the cost of
+   * acquisition fall every time somebody returned.
+   */
+  'ACQUISITION_SPEND',
+  'NEW_CUSTOMERS',
+  'CAC',
 ] as const
 export const metricIdSchema = z.enum(METRIC_IDS)
 export type MetricId = z.infer<typeof metricIdSchema>
