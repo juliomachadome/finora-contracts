@@ -1017,7 +1017,7 @@ declare const importSchema: z.ZodObject<{
 }, z.core.$strip>;
 type Import = z.infer<typeof importSchema>;
 /** Target fields a column can feed. */
-declare const TARGET_FIELDS: readonly ["date", "description", "amount", "currency", "customer", "supplier", "category", "product", "invoiceNumber", "reference", "externalId", "ignore"];
+declare const TARGET_FIELDS: readonly ["date", "description", "amount", "currency", "customer", "supplier", "category", "product", "quantity", "invoiceNumber", "reference", "externalId", "ignore"];
 declare const targetFieldSchema: z.ZodEnum<{
     date: "date";
     currency: "currency";
@@ -1027,6 +1027,7 @@ declare const targetFieldSchema: z.ZodEnum<{
     supplier: "supplier";
     category: "category";
     product: "product";
+    quantity: "quantity";
     invoiceNumber: "invoiceNumber";
     reference: "reference";
     externalId: "externalId";
@@ -1076,6 +1077,7 @@ declare const columnMappingSchema: z.ZodObject<{
         supplier: "supplier";
         category: "category";
         product: "product";
+        quantity: "quantity";
         invoiceNumber: "invoiceNumber";
         reference: "reference";
         externalId: "externalId";
@@ -1110,6 +1112,7 @@ declare const importMappingSchema: z.ZodObject<{
             supplier: "supplier";
             category: "category";
             product: "product";
+            quantity: "quantity";
             invoiceNumber: "invoiceNumber";
             reference: "reference";
             externalId: "externalId";
@@ -1144,6 +1147,7 @@ declare const confirmMappingInputSchema: z.ZodObject<{
             supplier: "supplier";
             category: "category";
             product: "product";
+            quantity: "quantity";
             invoiceNumber: "invoiceNumber";
             reference: "reference";
             externalId: "externalId";

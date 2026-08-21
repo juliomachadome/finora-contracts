@@ -80,6 +80,14 @@ export const TARGET_FIELDS = [
    * that groups by category, as though they were both places money goes.
    */
   'product',
+  /*
+   * How many items the row is for (§107, T38).
+   *
+   * Not the same as a count of rows. A file with one line for two hundred
+   * screws is one row and two hundred items, and a shop that sells by the box
+   * has a quantity column in every export its till produces.
+   */
+  'quantity',
   'invoiceNumber',
   'reference',
   'externalId',
