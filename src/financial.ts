@@ -68,8 +68,31 @@ export const lineageRefSchema = z.object({
    * shape belongs to the connector that knows the remote system, and a
    * frontend that composed it would be a second place to fix when a provider
    * changes its dashboard paths.
+   *
+   * ## Why the scheme is checked and `.url()` is not enough
+   *
+   * `z.string().url()` accepts `javascript:alert(1)` and
+   * `data:text/html,<script>…</script>`. It parses with `new URL()`, and both
+   * of those are valid URLs — the check is about syntax, not about safety.
+   *
+   * This value ends up in an `href`, and an `href` with a `javascript:` scheme
+   * executes on click. Today the only producer is a server-side template that
+   * cannot emit one, so nothing is exploitable right now. That is exactly the
+   * kind of safety that lasts until the next connector builds a link out of a
+   * field the remote system supplied — which is the obvious next step for this
+   * feature.
+   *
+   * The requirement belongs in the contract, where both sides read it, rather
+   * than in a comment asking whoever renders it to be careful.
    */
-  externalUrl: z.string().url().nullable().default(null),
+  externalUrl: z
+    .string()
+    .url()
+    .refine((value) => /^https?:$/.test(new URL(value).protocol), {
+      message: 'Only http and https may be linked to.',
+    })
+    .nullable()
+    .default(null),
 })
 export type LineageRef = z.infer<typeof lineageRefSchema>
 
