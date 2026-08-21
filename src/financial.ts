@@ -100,9 +100,44 @@ export const categorySchema = z.object({
   type: transactionTypeSchema,
   /** Shallow hierarchy: a category can have a parent, the parent has no grandparent. */
   parentId: idSchema.nullable(),
+  /** Declared, never inferred. See `acquisitionCategorySchema`. */
+  isAcquisitionCost: z.boolean(),
   createdAt: isoDateTimeSchema,
 })
 export type Category = z.infer<typeof categorySchema>
+
+/**
+ * An expense category, with what it costs and whether it counts as acquisition
+ * (§34, T32).
+ *
+ * ## Why the amount travels with the flag
+ *
+ * The screen asks somebody to mark which of their expense lines are the cost of
+ * winning customers. Without the amounts that is a list of names to guess at;
+ * with them, the two or three lines that matter are the ones at the top and the
+ * decision takes a glance instead of a spreadsheet. It is the whole reason the
+ * screen can be a list of switches and not a form with instructions.
+ */
+export const acquisitionCategorySchema = z.object({
+  id: idSchema,
+  name: z.string(),
+  isAcquisitionCost: z.boolean(),
+  /** What ran through this category over the window the listing covers. */
+  spent: moneySchema,
+})
+export type AcquisitionCategory = z.infer<typeof acquisitionCategorySchema>
+
+/**
+ * The declaration itself.
+ *
+ * A boolean and nothing else: who declared it and when are the server's to
+ * record, and a client that could send them could rewrite the provenance of a
+ * number people argue about.
+ */
+export const setAcquisitionCostSchema = z.object({
+  isAcquisitionCost: z.boolean(),
+})
+export type SetAcquisitionCost = z.infer<typeof setAcquisitionCostSchema>
 
 export const budgetSchema = z.object({
   id: idSchema,

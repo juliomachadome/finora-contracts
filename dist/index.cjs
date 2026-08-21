@@ -687,7 +687,19 @@ var categorySchema = zod.z.object({
   type: transactionTypeSchema,
   /** Shallow hierarchy: a category can have a parent, the parent has no grandparent. */
   parentId: idSchema.nullable(),
+  /** Declared, never inferred. See `acquisitionCategorySchema`. */
+  isAcquisitionCost: zod.z.boolean(),
   createdAt: isoDateTimeSchema
+});
+var acquisitionCategorySchema = zod.z.object({
+  id: idSchema,
+  name: zod.z.string(),
+  isAcquisitionCost: zod.z.boolean(),
+  /** What ran through this category over the window the listing covers. */
+  spent: moneySchema
+});
+var setAcquisitionCostSchema = zod.z.object({
+  isAcquisitionCost: zod.z.boolean()
 });
 var budgetSchema = zod.z.object({
   id: idSchema,
@@ -1593,6 +1605,7 @@ exports.SEVERITIES = SEVERITIES;
 exports.SUBSCRIPTION_STATUSES = SUBSCRIPTION_STATUSES;
 exports.TARGET_FIELDS = TARGET_FIELDS;
 exports.TRANSACTION_TYPES = TRANSACTION_TYPES;
+exports.acquisitionCategorySchema = acquisitionCategorySchema;
 exports.activitySchema = activitySchema;
 exports.activitySubjectSchema = activitySubjectSchema;
 exports.activityTypeSchema = activityTypeSchema;
@@ -1732,6 +1745,7 @@ exports.scenarioResultSchema = scenarioResultSchema;
 exports.scenarioTypeSchema = scenarioTypeSchema;
 exports.sessionOrganizationSchema = sessionOrganizationSchema;
 exports.sessionUserSchema = sessionUserSchema;
+exports.setAcquisitionCostSchema = setAcquisitionCostSchema;
 exports.severitySchema = severitySchema;
 exports.signupInputSchema = signupInputSchema;
 exports.subscriptionSchema = subscriptionSchema;
