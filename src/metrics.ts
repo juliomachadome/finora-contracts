@@ -97,6 +97,13 @@ export const METRIC_UNITS = [
    * `DAYS` is duration at the resolution stock is measured in. `MONTHS` is the
    * wrong grain for it — "48 days of inventory" is a decision and "1.6 months"
    * is a shrug.
+   *
+   * **`DAYS` is declared and not yet used**, the same way `DATA_SOURCE_KINDS`
+   * carries fifteen connectors with one implemented. Days of inventory needs a
+   * stock **position**, and a position needs a file the ingestion does not
+   * accept — so the node that would use it is not built. Being in the enum is
+   * what guarantees the formatter and the graph accommodate it the day it is,
+   * and `formatByUnit` already handles it.
    */
   'QUANTITY',
   'DAYS',
