@@ -333,7 +333,7 @@ export type PaymentProviderKind = z.infer<typeof paymentProviderSchema>
  * Portuguese is two locales, not one.
  *
  * The financial vocabulary genuinely diverges between Portugal and Brazil —
- * facturação/faturamento, IVA/ICMS, tesouraria/caixa — and serving both markets
+ * `facturação`/`faturamento`, `IVA`/`ICMS`, `tesouraria`/`caixa` — and serving both
  * with a single translation sounds foreign on both sides.
  */
 export const LOCALES = ['pt-PT', 'pt-BR', 'es', 'en'] as const

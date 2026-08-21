@@ -28,7 +28,8 @@
     "lint": "eslint .",
     "test": "vitest",
     "test:run": "vitest run",
-    "verify": "pnpm typecheck && pnpm lint && pnpm test:run"
+    "verify": "pnpm typecheck && pnpm lint && pnpm check:language && pnpm test:run",
+    "check:language": "node scripts/check-language.mjs"
   },
   "dependencies": {
     "zod": "^4.1.13"

@@ -21,7 +21,7 @@ import { localeSchema, roleSchema, permissionSchema } from './enums.js'
 export const PASSWORD_MIN_LENGTH = 12
 export const passwordSchema = z
   .string()
-  .min(PASSWORD_MIN_LENGTH, `mínimo de ${PASSWORD_MIN_LENGTH} caracteres`)
+  .min(PASSWORD_MIN_LENGTH, `at least ${PASSWORD_MIN_LENGTH} characters`)
   .max(200)
 
 export const emailSchema = z.string().email().toLowerCase().trim()

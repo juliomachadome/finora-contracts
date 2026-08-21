@@ -20,7 +20,7 @@ export const isoDateSchema = z.iso.date()
 export type IsoDate = z.infer<typeof isoDateSchema>
 
 /** Monthly period `YYYY-MM`. The natural unit of financial reporting. */
-export const periodSchema = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'período tem de ser YYYY-MM')
+export const periodSchema = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'period must be YYYY-MM')
 export type Period = z.infer<typeof periodSchema>
 
 /** ISO-4217. */
