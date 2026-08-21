@@ -307,7 +307,19 @@ export type ExportFormat = z.infer<typeof exportFormatSchema>
 // Billing
 // ---------------------------------------------------------------------------
 
-export const PLAN_TIERS = ['STARTER', 'GROWTH', 'BUSINESS', 'ENTERPRISE'] as const
+/**
+ * The tiers, cheapest first (§81, T36, D9).
+ *
+ * `SOLO` exists because **the person who most needs this product is the one who
+ * has no CFO**, and the plan structure was not designed with them in mind. It
+ * is free, and it can be: the deterministic engine costs no tokens, so the
+ * marginal cost of a small customer is storage and queries.
+ *
+ * What makes it viable is BYOK, which was built for large enterprises and is
+ * really a **pricing mechanism**: bring your own key and the AI bill is yours,
+ * so the tier below it does not need to carry one.
+ */
+export const PLAN_TIERS = ['SOLO', 'STARTER', 'GROWTH', 'BUSINESS', 'ENTERPRISE'] as const
 export const planTierSchema = z.enum(PLAN_TIERS)
 export type PlanTier = z.infer<typeof planTierSchema>
 

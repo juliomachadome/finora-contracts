@@ -194,7 +194,7 @@ var FORECAST_SCENARIOS = ["BASE", "UPSIDE", "DOWNSIDE"];
 var forecastScenarioSchema = z.enum(FORECAST_SCENARIOS);
 var EXPORT_FORMATS = ["CSV", "XLSX", "PDF"];
 var exportFormatSchema = z.enum(EXPORT_FORMATS);
-var PLAN_TIERS = ["STARTER", "GROWTH", "BUSINESS", "ENTERPRISE"];
+var PLAN_TIERS = ["SOLO", "STARTER", "GROWTH", "BUSINESS", "ENTERPRISE"];
 var planTierSchema = z.enum(PLAN_TIERS);
 var SUBSCRIPTION_STATUSES = [
   "TRIALING",

@@ -196,7 +196,7 @@ var FORECAST_SCENARIOS = ["BASE", "UPSIDE", "DOWNSIDE"];
 var forecastScenarioSchema = zod.z.enum(FORECAST_SCENARIOS);
 var EXPORT_FORMATS = ["CSV", "XLSX", "PDF"];
 var exportFormatSchema = zod.z.enum(EXPORT_FORMATS);
-var PLAN_TIERS = ["STARTER", "GROWTH", "BUSINESS", "ENTERPRISE"];
+var PLAN_TIERS = ["SOLO", "STARTER", "GROWTH", "BUSINESS", "ENTERPRISE"];
 var planTierSchema = zod.z.enum(PLAN_TIERS);
 var SUBSCRIPTION_STATUSES = [
   "TRIALING",

@@ -247,8 +247,21 @@ declare const exportFormatSchema: z.ZodEnum<{
     PDF: "PDF";
 }>;
 type ExportFormat = z.infer<typeof exportFormatSchema>;
-declare const PLAN_TIERS: readonly ["STARTER", "GROWTH", "BUSINESS", "ENTERPRISE"];
+/**
+ * The tiers, cheapest first (§81, T36, D9).
+ *
+ * `SOLO` exists because **the person who most needs this product is the one who
+ * has no CFO**, and the plan structure was not designed with them in mind. It
+ * is free, and it can be: the deterministic engine costs no tokens, so the
+ * marginal cost of a small customer is storage and queries.
+ *
+ * What makes it viable is BYOK, which was built for large enterprises and is
+ * really a **pricing mechanism**: bring your own key and the AI bill is yours,
+ * so the tier below it does not need to carry one.
+ */
+declare const PLAN_TIERS: readonly ["SOLO", "STARTER", "GROWTH", "BUSINESS", "ENTERPRISE"];
 declare const planTierSchema: z.ZodEnum<{
+    SOLO: "SOLO";
     STARTER: "STARTER";
     GROWTH: "GROWTH";
     BUSINESS: "BUSINESS";
@@ -4030,6 +4043,7 @@ declare const planLimitsSchema: z.ZodObject<{
 type PlanLimits = z.infer<typeof planLimitsSchema>;
 declare const planSchema: z.ZodObject<{
     tier: z.ZodEnum<{
+        SOLO: "SOLO";
         STARTER: "STARTER";
         GROWTH: "GROWTH";
         BUSINESS: "BUSINESS";
@@ -4063,6 +4077,7 @@ declare const subscriptionSchema: z.ZodObject<{
     id: z.ZodString;
     organizationId: z.ZodString;
     tier: z.ZodEnum<{
+        SOLO: "SOLO";
         STARTER: "STARTER";
         GROWTH: "GROWTH";
         BUSINESS: "BUSINESS";
@@ -4088,6 +4103,7 @@ declare const subscriptionSchema: z.ZodObject<{
 type Subscription = z.infer<typeof subscriptionSchema>;
 declare const createCheckoutInputSchema: z.ZodObject<{
     tier: z.ZodEnum<{
+        SOLO: "SOLO";
         STARTER: "STARTER";
         GROWTH: "GROWTH";
         BUSINESS: "BUSINESS";
@@ -4115,6 +4131,7 @@ type CheckoutSession = z.infer<typeof checkoutSessionSchema>;
 declare const usageSummarySchema: z.ZodObject<{
     organizationId: z.ZodString;
     tier: z.ZodEnum<{
+        SOLO: "SOLO";
         STARTER: "STARTER";
         GROWTH: "GROWTH";
         BUSINESS: "BUSINESS";
