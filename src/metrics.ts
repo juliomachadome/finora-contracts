@@ -323,8 +323,24 @@ export const profileSignalSchema = z.object({
 })
 export type ProfileSignal = z.infer<typeof profileSignalSchema>
 
+/**
+ * Who this company sells to (§34, T35).
+ *
+ * Derived and not configured: a settings field is a field that is wrong for
+ * everybody who skipped the onboarding, and the signals that answer it are
+ * already measured.
+ *
+ * It changes which conclusions are meaningful. A concentration alert on a shop
+ * with forty thousand buyers is not a false positive to be tuned away — it is a
+ * question that does not apply, and the second time somebody sees one they stop
+ * reading the alerts.
+ */
+export const businessTypeSchema = z.enum(['B2B', 'B2C', 'MIXED', 'UNDETERMINED'])
+export type BusinessType = z.infer<typeof businessTypeSchema>
+
 export const businessProfileSchema = z.object({
   archetype: archetypeSchema,
+  businessType: businessTypeSchema,
   /** Every signal, including the ones that came back `null`. */
   signals: z.array(profileSignalSchema),
   /** The signals that carried the decision. Empty when nothing was declared. */

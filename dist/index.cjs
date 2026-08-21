@@ -1038,8 +1038,10 @@ var profileSignalSchema = zod.z.object({
   /** The numbers this was measured from, so the claim can be checked. */
   detail: zod.z.record(zod.z.string(), zod.z.number())
 });
+var businessTypeSchema = zod.z.enum(["B2B", "B2C", "MIXED", "UNDETERMINED"]);
 var businessProfileSchema = zod.z.object({
   archetype: archetypeSchema,
+  businessType: businessTypeSchema,
   /** Every signal, including the ones that came back `null`. */
   signals: zod.z.array(profileSignalSchema),
   /** The signals that carried the decision. Empty when nothing was declared. */
@@ -1603,6 +1605,7 @@ exports.breakdownItemSchema = breakdownItemSchema;
 exports.budgetSchema = budgetSchema;
 exports.businessCanvasSchema = businessCanvasSchema;
 exports.businessProfileSchema = businessProfileSchema;
+exports.businessTypeSchema = businessTypeSchema;
 exports.calculationSchema = calculationSchema;
 exports.canvasBlockIdSchema = canvasBlockIdSchema;
 exports.canvasBlockSchema = canvasBlockSchema;
