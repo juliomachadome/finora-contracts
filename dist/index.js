@@ -888,6 +888,16 @@ var METRIC_IDS = [
    * dash.
    */
   "UNITS_SOLD",
+  /*
+   * Revenue on the rows that declared a quantity.
+   *
+   * It exists to make `MARGIN_PER_UNIT` refuse when it cannot be trusted. A
+   * business that records units on some lines and not others has a gross profit
+   * covering everything and a unit count covering a fraction — and dividing one
+   * by the other gave, on the demonstration data, a margin of €21 352 per
+   * bicycle. Plausible arithmetic, meaningless number.
+   */
+  "QUANTIFIED_REVENUE",
   "MARGIN_PER_UNIT"
 ];
 var metricIdSchema = z.enum(METRIC_IDS);

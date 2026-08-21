@@ -1,6 +1,6 @@
 {
   "name": "@praestat/contracts",
-  "version": "0.17.1",
+  "version": "0.18.0",
   "description": "Zod schemas and types shared between praestat-back and praestat-web",
   "license": "UNLICENSED",
   "packageManager": "pnpm@11.20.0",

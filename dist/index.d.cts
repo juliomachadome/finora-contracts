@@ -1684,7 +1684,7 @@ type LeadFilter = z.infer<typeof leadFilterSchema>;
  * metric to metric and lives in code; that one links metric to transactions and
  * to file rows, and is built by query. They touch at the leaves.
  */
-declare const METRIC_IDS: readonly ["REVENUE", "EXPENSES", "COGS", "OPEX", "CASH", "ACCOUNTS_RECEIVABLE", "ACCOUNTS_PAYABLE", "BUDGETED_EXPENSES", "GROSS_PROFIT", "GROSS_MARGIN", "OPERATING_PROFIT", "EBITDA", "EBITDA_MARGIN", "REVENUE_GROWTH", "EXPENSE_GROWTH", "CUSTOMER_CONCENTRATION", "BURN", "RUNWAY", "BUDGET_VARIANCE", "PIPELINE_OPEN", "PIPELINE_WEIGHTED", "DEALS_WON", "DEALS_LOST", "WIN_RATE", "UNITS_SOLD", "MARGIN_PER_UNIT"];
+declare const METRIC_IDS: readonly ["REVENUE", "EXPENSES", "COGS", "OPEX", "CASH", "ACCOUNTS_RECEIVABLE", "ACCOUNTS_PAYABLE", "BUDGETED_EXPENSES", "GROSS_PROFIT", "GROSS_MARGIN", "OPERATING_PROFIT", "EBITDA", "EBITDA_MARGIN", "REVENUE_GROWTH", "EXPENSE_GROWTH", "CUSTOMER_CONCENTRATION", "BURN", "RUNWAY", "BUDGET_VARIANCE", "PIPELINE_OPEN", "PIPELINE_WEIGHTED", "DEALS_WON", "DEALS_LOST", "WIN_RATE", "UNITS_SOLD", "QUANTIFIED_REVENUE", "MARGIN_PER_UNIT"];
 declare const metricIdSchema: z.ZodEnum<{
     REVENUE: "REVENUE";
     CUSTOMER_CONCENTRATION: "CUSTOMER_CONCENTRATION";
@@ -1711,6 +1711,7 @@ declare const metricIdSchema: z.ZodEnum<{
     DEALS_LOST: "DEALS_LOST";
     WIN_RATE: "WIN_RATE";
     UNITS_SOLD: "UNITS_SOLD";
+    QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
     MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
 }>;
 type MetricId = z.infer<typeof metricIdSchema>;
@@ -1765,6 +1766,7 @@ declare const metricNodeSpecSchema: z.ZodObject<{
         DEALS_LOST: "DEALS_LOST";
         WIN_RATE: "WIN_RATE";
         UNITS_SOLD: "UNITS_SOLD";
+        QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
         MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
     }>;
     unit: z.ZodEnum<{
@@ -1802,6 +1804,7 @@ declare const metricNodeSpecSchema: z.ZodObject<{
         DEALS_LOST: "DEALS_LOST";
         WIN_RATE: "WIN_RATE";
         UNITS_SOLD: "UNITS_SOLD";
+        QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
         MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
     }>>;
     isLeaf: z.ZodBoolean;
@@ -1835,6 +1838,7 @@ declare const metricValueSchema: z.ZodObject<{
         DEALS_LOST: "DEALS_LOST";
         WIN_RATE: "WIN_RATE";
         UNITS_SOLD: "UNITS_SOLD";
+        QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
         MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
     }>;
     period: z.ZodString;
@@ -1894,6 +1898,7 @@ declare const varianceContributionSchema: z.ZodObject<{
         DEALS_LOST: "DEALS_LOST";
         WIN_RATE: "WIN_RATE";
         UNITS_SOLD: "UNITS_SOLD";
+        QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
         MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
     }>>;
     entityId: z.ZodNullable<z.ZodString>;
@@ -1948,6 +1953,7 @@ declare const metricQuerySchema: z.ZodObject<{
         DEALS_LOST: "DEALS_LOST";
         WIN_RATE: "WIN_RATE";
         UNITS_SOLD: "UNITS_SOLD";
+        QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
         MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
     }>>>;
 }, z.core.$strip>;
@@ -2003,6 +2009,7 @@ declare const overviewShapeSchema: z.ZodObject<{
         DEALS_LOST: "DEALS_LOST";
         WIN_RATE: "WIN_RATE";
         UNITS_SOLD: "UNITS_SOLD";
+        QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
         MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
     }>>;
     sections: z.ZodArray<z.ZodEnum<{
@@ -2051,6 +2058,7 @@ declare const dashboardSummarySchema: z.ZodObject<{
             DEALS_LOST: "DEALS_LOST";
             WIN_RATE: "WIN_RATE";
             UNITS_SOLD: "UNITS_SOLD";
+            QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
             MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
         }>;
         period: z.ZodString;
@@ -2101,6 +2109,7 @@ declare const dashboardSummarySchema: z.ZodObject<{
             DEALS_LOST: "DEALS_LOST";
             WIN_RATE: "WIN_RATE";
             UNITS_SOLD: "UNITS_SOLD";
+            QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
             MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
         }>>;
         sections: z.ZodArray<z.ZodEnum<{
@@ -2396,6 +2405,7 @@ declare const calculationSchema: z.ZodObject<{
         DEALS_LOST: "DEALS_LOST";
         WIN_RATE: "WIN_RATE";
         UNITS_SOLD: "UNITS_SOLD";
+        QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
         MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
     }>;
     period: z.ZodString;
@@ -2429,6 +2439,7 @@ declare const calculationSchema: z.ZodObject<{
             DEALS_LOST: "DEALS_LOST";
             WIN_RATE: "WIN_RATE";
             UNITS_SOLD: "UNITS_SOLD";
+            QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
             MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
         }>>;
     }, z.core.$strip>>;
@@ -2491,6 +2502,7 @@ declare const evidenceSchema: z.ZodObject<{
             DEALS_LOST: "DEALS_LOST";
             WIN_RATE: "WIN_RATE";
             UNITS_SOLD: "UNITS_SOLD";
+            QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
             MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
         }>;
         period: z.ZodString;
@@ -2524,6 +2536,7 @@ declare const evidenceSchema: z.ZodObject<{
                 DEALS_LOST: "DEALS_LOST";
                 WIN_RATE: "WIN_RATE";
                 UNITS_SOLD: "UNITS_SOLD";
+                QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
                 MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
             }>>;
         }, z.core.$strip>>;
@@ -2633,6 +2646,7 @@ declare const insightSchema: z.ZodObject<{
         DEALS_LOST: "DEALS_LOST";
         WIN_RATE: "WIN_RATE";
         UNITS_SOLD: "UNITS_SOLD";
+        QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
         MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
     }>>;
     entityId: z.ZodNullable<z.ZodString>;
@@ -2673,6 +2687,7 @@ declare const insightSchema: z.ZodObject<{
                 DEALS_LOST: "DEALS_LOST";
                 WIN_RATE: "WIN_RATE";
                 UNITS_SOLD: "UNITS_SOLD";
+                QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
                 MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
             }>;
             period: z.ZodString;
@@ -2706,6 +2721,7 @@ declare const insightSchema: z.ZodObject<{
                     DEALS_LOST: "DEALS_LOST";
                     WIN_RATE: "WIN_RATE";
                     UNITS_SOLD: "UNITS_SOLD";
+                    QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
                     MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
                 }>>;
             }, z.core.$strip>>;
@@ -2806,6 +2822,7 @@ declare const insightsResponseSchema: z.ZodObject<{
             DEALS_LOST: "DEALS_LOST";
             WIN_RATE: "WIN_RATE";
             UNITS_SOLD: "UNITS_SOLD";
+            QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
             MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
         }>>;
         entityId: z.ZodNullable<z.ZodString>;
@@ -2846,6 +2863,7 @@ declare const insightsResponseSchema: z.ZodObject<{
                     DEALS_LOST: "DEALS_LOST";
                     WIN_RATE: "WIN_RATE";
                     UNITS_SOLD: "UNITS_SOLD";
+                    QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
                     MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
                 }>;
                 period: z.ZodString;
@@ -2879,6 +2897,7 @@ declare const insightsResponseSchema: z.ZodObject<{
                         DEALS_LOST: "DEALS_LOST";
                         WIN_RATE: "WIN_RATE";
                         UNITS_SOLD: "UNITS_SOLD";
+                        QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
                         MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
                     }>>;
                 }, z.core.$strip>>;
@@ -2968,6 +2987,7 @@ declare const changeItemSchema: z.ZodObject<{
         DEALS_LOST: "DEALS_LOST";
         WIN_RATE: "WIN_RATE";
         UNITS_SOLD: "UNITS_SOLD";
+        QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
         MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
     }>;
     unit: z.ZodString;
@@ -3015,6 +3035,7 @@ declare const whatChangedResponseSchema: z.ZodObject<{
             DEALS_LOST: "DEALS_LOST";
             WIN_RATE: "WIN_RATE";
             UNITS_SOLD: "UNITS_SOLD";
+            QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
             MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
         }>;
         unit: z.ZodString;
@@ -3179,6 +3200,7 @@ declare const aiAnswerSchema: z.ZodObject<{
                 DEALS_LOST: "DEALS_LOST";
                 WIN_RATE: "WIN_RATE";
                 UNITS_SOLD: "UNITS_SOLD";
+                QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
                 MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
             }>;
             period: z.ZodString;
@@ -3212,6 +3234,7 @@ declare const aiAnswerSchema: z.ZodObject<{
                     DEALS_LOST: "DEALS_LOST";
                     WIN_RATE: "WIN_RATE";
                     UNITS_SOLD: "UNITS_SOLD";
+                    QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
                     MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
                 }>>;
             }, z.core.$strip>>;
@@ -3269,6 +3292,7 @@ declare const aiAnswerSchema: z.ZodObject<{
             DEALS_LOST: "DEALS_LOST";
             WIN_RATE: "WIN_RATE";
             UNITS_SOLD: "UNITS_SOLD";
+            QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
             MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
         }>;
         period: z.ZodString;
@@ -3302,6 +3326,7 @@ declare const aiAnswerSchema: z.ZodObject<{
                 DEALS_LOST: "DEALS_LOST";
                 WIN_RATE: "WIN_RATE";
                 UNITS_SOLD: "UNITS_SOLD";
+                QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
                 MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
             }>>;
         }, z.core.$strip>>;
@@ -3370,6 +3395,7 @@ declare const aiMessageSchema: z.ZodObject<{
                     DEALS_LOST: "DEALS_LOST";
                     WIN_RATE: "WIN_RATE";
                     UNITS_SOLD: "UNITS_SOLD";
+                    QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
                     MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
                 }>;
                 period: z.ZodString;
@@ -3403,6 +3429,7 @@ declare const aiMessageSchema: z.ZodObject<{
                         DEALS_LOST: "DEALS_LOST";
                         WIN_RATE: "WIN_RATE";
                         UNITS_SOLD: "UNITS_SOLD";
+                        QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
                         MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
                     }>>;
                 }, z.core.$strip>>;
@@ -3460,6 +3487,7 @@ declare const aiMessageSchema: z.ZodObject<{
                 DEALS_LOST: "DEALS_LOST";
                 WIN_RATE: "WIN_RATE";
                 UNITS_SOLD: "UNITS_SOLD";
+                QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
                 MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
             }>;
             period: z.ZodString;
@@ -3493,6 +3521,7 @@ declare const aiMessageSchema: z.ZodObject<{
                     DEALS_LOST: "DEALS_LOST";
                     WIN_RATE: "WIN_RATE";
                     UNITS_SOLD: "UNITS_SOLD";
+                    QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
                     MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
                 }>>;
             }, z.core.$strip>>;
@@ -3652,6 +3681,7 @@ declare const scenarioImpactSchema: z.ZodObject<{
         DEALS_LOST: "DEALS_LOST";
         WIN_RATE: "WIN_RATE";
         UNITS_SOLD: "UNITS_SOLD";
+        QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
         MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
     }>;
     baseline: z.ZodNumber;
@@ -3700,6 +3730,7 @@ declare const scenarioResultSchema: z.ZodObject<{
             DEALS_LOST: "DEALS_LOST";
             WIN_RATE: "WIN_RATE";
             UNITS_SOLD: "UNITS_SOLD";
+            QUANTIFIED_REVENUE: "QUANTIFIED_REVENUE";
             MARGIN_PER_UNIT: "MARGIN_PER_UNIT";
         }>;
         baseline: z.ZodNumber;
