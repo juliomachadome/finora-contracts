@@ -1399,6 +1399,8 @@ declare const lineageRefSchema: z.ZodObject<{
     fileName: z.ZodString;
     sheetName: z.ZodNullable<z.ZodString>;
     rowNumber: z.ZodNullable<z.ZodNumber>;
+    externalId: z.ZodDefault<z.ZodNullable<z.ZodString>>;
+    externalUrl: z.ZodDefault<z.ZodNullable<z.ZodString>>;
 }, z.core.$strip>;
 type LineageRef = z.infer<typeof lineageRefSchema>;
 declare const transactionSchema: z.ZodObject<{
@@ -1428,6 +1430,8 @@ declare const transactionSchema: z.ZodObject<{
         fileName: z.ZodString;
         sheetName: z.ZodNullable<z.ZodString>;
         rowNumber: z.ZodNullable<z.ZodNumber>;
+        externalId: z.ZodDefault<z.ZodNullable<z.ZodString>>;
+        externalUrl: z.ZodDefault<z.ZodNullable<z.ZodString>>;
     }, z.core.$strip>;
 }, z.core.$strip>;
 type Transaction = z.infer<typeof transactionSchema>;
@@ -2622,6 +2626,8 @@ declare const evidenceTransactionSchema: z.ZodObject<{
         fileName: z.ZodString;
         sheetName: z.ZodNullable<z.ZodString>;
         rowNumber: z.ZodNullable<z.ZodNumber>;
+        externalId: z.ZodDefault<z.ZodNullable<z.ZodString>>;
+        externalUrl: z.ZodDefault<z.ZodNullable<z.ZodString>>;
     }, z.core.$strip>;
 }, z.core.$strip>;
 type EvidenceTransaction = z.infer<typeof evidenceTransactionSchema>;
@@ -2724,6 +2730,8 @@ declare const evidenceSchema: z.ZodObject<{
             fileName: z.ZodString;
             sheetName: z.ZodNullable<z.ZodString>;
             rowNumber: z.ZodNullable<z.ZodNumber>;
+            externalId: z.ZodDefault<z.ZodNullable<z.ZodString>>;
+            externalUrl: z.ZodDefault<z.ZodNullable<z.ZodString>>;
         }, z.core.$strip>;
     }, z.core.$strip>>;
     sources: z.ZodArray<z.ZodObject<{
@@ -2918,6 +2926,8 @@ declare const insightSchema: z.ZodObject<{
                 fileName: z.ZodString;
                 sheetName: z.ZodNullable<z.ZodString>;
                 rowNumber: z.ZodNullable<z.ZodNumber>;
+                externalId: z.ZodDefault<z.ZodNullable<z.ZodString>>;
+                externalUrl: z.ZodDefault<z.ZodNullable<z.ZodString>>;
             }, z.core.$strip>;
         }, z.core.$strip>>;
         sources: z.ZodArray<z.ZodObject<{
@@ -3103,6 +3113,8 @@ declare const insightsResponseSchema: z.ZodObject<{
                     fileName: z.ZodString;
                     sheetName: z.ZodNullable<z.ZodString>;
                     rowNumber: z.ZodNullable<z.ZodNumber>;
+                    externalId: z.ZodDefault<z.ZodNullable<z.ZodString>>;
+                    externalUrl: z.ZodDefault<z.ZodNullable<z.ZodString>>;
                 }, z.core.$strip>;
             }, z.core.$strip>>;
             sources: z.ZodArray<z.ZodObject<{
@@ -3464,6 +3476,8 @@ declare const aiAnswerSchema: z.ZodObject<{
                 fileName: z.ZodString;
                 sheetName: z.ZodNullable<z.ZodString>;
                 rowNumber: z.ZodNullable<z.ZodNumber>;
+                externalId: z.ZodDefault<z.ZodNullable<z.ZodString>>;
+                externalUrl: z.ZodDefault<z.ZodNullable<z.ZodString>>;
             }, z.core.$strip>;
         }, z.core.$strip>>;
         sources: z.ZodArray<z.ZodObject<{
@@ -3671,6 +3685,8 @@ declare const aiMessageSchema: z.ZodObject<{
                     fileName: z.ZodString;
                     sheetName: z.ZodNullable<z.ZodString>;
                     rowNumber: z.ZodNullable<z.ZodNumber>;
+                    externalId: z.ZodDefault<z.ZodNullable<z.ZodString>>;
+                    externalUrl: z.ZodDefault<z.ZodNullable<z.ZodString>>;
                 }, z.core.$strip>;
             }, z.core.$strip>>;
             sources: z.ZodArray<z.ZodObject<{

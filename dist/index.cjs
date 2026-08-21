@@ -667,7 +667,37 @@ var lineageRefSchema = zod.z.object({
   fileName: zod.z.string(),
   sheetName: zod.z.string().nullable(),
   /** Row number in the original file, just as the user sees it in Excel. */
-  rowNumber: zod.z.number().int().positive().nullable()
+  rowNumber: zod.z.number().int().positive().nullable(),
+  /**
+   * The row's identifier at the source, for data that came from an API (§98,
+   * T15).
+   *
+   * ## Why lineage needed a second shape
+   *
+   * Every field above describes a file: a name, a sheet, a line you can scroll
+   * to. A synchronization has none of them. Forcing Stripe into that shape
+   * would mean inventing a row number — a number that looks like something you
+   * could go and check and leads nowhere, which is worse than admitting there
+   * is no line.
+   *
+   * What a charge does have is an id that is stable, unique and resolvable:
+   * `ch_3PabcXYZ` opens in the remote dashboard. That is the same promise the
+   * row number makes for a spreadsheet, kept by different means.
+   *
+   * `null` for a file, and the screen falls back to sheet and row. Both are
+   * never absent at once: a transaction with neither has no provenance, and
+   * provenance is what this product sells.
+   */
+  externalId: zod.z.string().nullable().default(null),
+  /**
+   * Where to go and look, when the source can be linked to.
+   *
+   * Built by the server rather than assembled by whoever renders it: the URL
+   * shape belongs to the connector that knows the remote system, and a
+   * frontend that composed it would be a second place to fix when a provider
+   * changes its dashboard paths.
+   */
+  externalUrl: zod.z.string().url().nullable().default(null)
 });
 var transactionSchema = zod.z.object({
   id: idSchema,
