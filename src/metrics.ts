@@ -459,3 +459,70 @@ export const declareCanvasBlockSchema = z.object({
   content: z.string().trim().min(1).max(600),
 })
 export type DeclareCanvasBlock = z.infer<typeof declareCanvasBlockSchema>
+
+/**
+ * The opinions one organization is judged by (§36, T22).
+ *
+ * ## Why both sets travel, and not only the effective one
+ *
+ * So the screen can say **what was inherited and what was chosen**. A settings
+ * page whose numbers have no provenance is one nobody trusts — and the same
+ * reasoning that makes an insight carry its evidence makes a threshold carry
+ * where it came from.
+ *
+ * ## Why the limits are sent rather than hard-coded in the client
+ *
+ * They are the engine's opinion about what a sane threshold is, and a second
+ * copy in the frontend would disagree the first time one moved. The client
+ * renders the range it was given; the server refuses anything outside it.
+ */
+export const thresholdSetSchema = z.object({
+  revenueMinimumFall: z.number(),
+  expenseMinimumRise: z.number(),
+  expenseMinimumShare: z.number(),
+  marginMinimumFall: z.number(),
+  customerMinimumShare: z.number(),
+  customerMinimumExcess: z.number(),
+  minimumConcentration: z.number(),
+  budgetMinimumOverrun: z.number(),
+  budgetMinimumShare: z.number(),
+  runwayAlertMonths: z.number(),
+  cashFallingMonths: z.number(),
+})
+export type ThresholdSet = z.infer<typeof thresholdSetSchema>
+
+export const effectiveThresholdsSchema = z.object({
+  archetype: archetypeSchema,
+  /** What the engine will actually judge with. */
+  effective: thresholdSetSchema,
+  /** What this organization would be judged with if it declared nothing. */
+  inherited: thresholdSetSchema,
+  /** The fields deliberately moved, so the screen can mark them. */
+  overridden: z.array(z.string()),
+  /** `[min, max]` per field. The client renders it; the server enforces it. */
+  limits: z.record(z.string(), z.tuple([z.number(), z.number()])),
+  /**
+   * The fingerprint this organization's insights carry.
+   *
+   * On the wire because it is the honest answer to *"are my alerts comparable
+   * to the defaults?"* — and because a screen that changes thresholds should be
+   * able to show that the change took effect.
+   */
+  version: z.string(),
+  declaredBy: z.string().nullable(),
+  declaredAt: isoDateTimeSchema.nullable(),
+})
+export type EffectiveThresholds = z.infer<typeof effectiveThresholdsSchema>
+
+/**
+ * Declaring thresholds, or importing a set.
+ *
+ * Replaces rather than merges: with a merge there is no gesture for "forget
+ * what I said", and a field once moved could never go back to the published
+ * opinion. An empty object is how an organization returns to inheriting
+ * everything.
+ */
+export const declareThresholdsSchema = z.object({
+  overrides: z.record(z.string(), z.number()),
+})
+export type DeclareThresholds = z.infer<typeof declareThresholdsSchema>

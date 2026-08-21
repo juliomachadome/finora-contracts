@@ -1210,6 +1210,43 @@ var declareCanvasBlockSchema = z.object({
    */
   content: z.string().trim().min(1).max(600)
 });
+var thresholdSetSchema = z.object({
+  revenueMinimumFall: z.number(),
+  expenseMinimumRise: z.number(),
+  expenseMinimumShare: z.number(),
+  marginMinimumFall: z.number(),
+  customerMinimumShare: z.number(),
+  customerMinimumExcess: z.number(),
+  minimumConcentration: z.number(),
+  budgetMinimumOverrun: z.number(),
+  budgetMinimumShare: z.number(),
+  runwayAlertMonths: z.number(),
+  cashFallingMonths: z.number()
+});
+var effectiveThresholdsSchema = z.object({
+  archetype: archetypeSchema,
+  /** What the engine will actually judge with. */
+  effective: thresholdSetSchema,
+  /** What this organization would be judged with if it declared nothing. */
+  inherited: thresholdSetSchema,
+  /** The fields deliberately moved, so the screen can mark them. */
+  overridden: z.array(z.string()),
+  /** `[min, max]` per field. The client renders it; the server enforces it. */
+  limits: z.record(z.string(), z.tuple([z.number(), z.number()])),
+  /**
+   * The fingerprint this organization's insights carry.
+   *
+   * On the wire because it is the honest answer to *"are my alerts comparable
+   * to the defaults?"* — and because a screen that changes thresholds should be
+   * able to show that the change took effect.
+   */
+  version: z.string(),
+  declaredBy: z.string().nullable(),
+  declaredAt: isoDateTimeSchema.nullable()
+});
+var declareThresholdsSchema = z.object({
+  overrides: z.record(z.string(), z.number())
+});
 var calculationSchema = z.object({
   metricId: metricIdSchema,
   period: periodSchema,
@@ -1642,4 +1679,4 @@ var usageSummarySchema = z.object({
   })
 });
 
-export { ACTIVITY_SUBJECTS, ACTIVITY_TYPES, AI_PROVIDER_KINDS, AI_RESPONSE_TYPES, AI_RETENTION_POLICIES, AI_TASKS, AUDIT_ACTIONS, CANVAS_BLOCKS, COLUMN_MATCHES, CONNECTOR_CAPABILITIES, CUSTOMER_STATUSES, DATA_CLASSES, DATA_QUALITY_ISSUE_TYPES, DATA_SOURCE_KINDS, DEFAULT_LOCALE, EXPORT_FORMATS, FORECAST_SCENARIOS, IMPORT_STATES, IMPORT_TRIGGERS, INSIGHT_TYPES, LEAD_STATUSES, LOCALES, METRIC_IDS, METRIC_UNITS, OPPORTUNITY_STAGES, OVERVIEW_SECTIONS, PASSWORD_MIN_LENGTH, PAYMENT_PROVIDERS, PERIOD_GRANULARITIES, PERMISSIONS, PLAN_TIERS, REPORT_SECTION_KINDS, ROLES, ROLE_PERMISSIONS, SCENARIO_TYPES, SEVERITIES, SUBSCRIPTION_STATUSES, TARGET_FIELDS, TRANSACTION_TYPES, acquisitionCategorySchema, activitySchema, activitySubjectSchema, activityTypeSchema, actualPointSchema, aiAnswerSchema, aiConversationSchema, aiMessageSchema, aiPrivacyStatusSchema, aiProviderConfigSchema, aiProviderKindSchema, aiRecommendationSchema, aiResponseTypeSchema, aiRetentionPolicySchema, aiTaskSchema, aiUsageSchema, aiUsageSummarySchema, apiErrorSchema, archetypeSchema, askInputSchema, assumptionSchema, auditActionSchema, auditEventSchema, authResponseSchema, brandingConfigSchema, breakdownItemSchema, budgetSchema, businessCanvasSchema, businessProfileSchema, businessTypeSchema, calculationSchema, canvasBlockIdSchema, canvasBlockSchema, canvasEvidenceSchema, categorySchema, changeItemSchema, checkoutSessionSchema, columnMappingSchema, columnMatchSchema, competitorSchema, confirmMappingInputSchema, connectionHealthSchema, connectorCapabilitySchema, createCheckoutInputSchema, createLeadInputSchema, createOpportunityInputSchema, currencySchema, customerSchema, customerStatusSchema, dashboardSummarySchema, dataClassSchema, dataQualityIssueSchema, dataQualityIssueTypeSchema, dataQualitySummarySchema, dataSourceKindSchema, dataSourceSchema, datasetSchema, declareCanvasBlockSchema, declareCompetitorInputSchema, deltaSchema, discoveredEntitySchema, discoveredFieldSchema, discoveredSchemaSchema, emailSchema, evidenceIdSchema, evidenceSchema, evidenceTransactionSchema, exportFormatSchema, exportRequestSchema, exportResultSchema, forecastPointSchema, forecastScenarioSchema, forecastSchema, generateReportInputSchema, idSchema, importFilterSchema, importMappingSchema, importPreviewSchema, importProgressSchema, importSchema, importStateSchema, importTriggerSchema, insightFilterSchema, insightSchema, insightTypeSchema, insightsResponseSchema, inviteMemberInputSchema, isoDateSchema, isoDateTimeSchema, keyPointSchema, leadFilterSchema, leadSchema, leadStatusSchema, lineageRefSchema, localeSchema, loginInputSchema, memberSchema, membershipSchema, metricIdSchema, metricNodeSpecSchema, metricQuerySchema, metricUnitSchema, metricValueSchema, moneySchema, opportunitySchema, opportunityStageSchema, organizationSchema, organizationSettingsSchema, overviewSectionSchema, overviewShapeSchema, paginatedSchema, paginationQuerySchema, partnerSchema, passwordSchema, paymentProviderSchema, percentageSchema, periodGranularitySchema, periodRangeSchema, periodSchema, permissionSchema, pipelineSummarySchema, planLimitsSchema, planSchema, planTierSchema, previewRowSchema, profileSignalIdSchema, profileSignalSchema, recommendationSchema, refreshInputSchema, reportMetadataSchema, reportSchema, reportSectionKindSchema, reportSectionSchema, requestPasswordResetInputSchema, resetPasswordInputSchema, roleSchema, scenarioImpactSchema, scenarioInputSchema, scenarioResultSchema, scenarioTypeSchema, sessionOrganizationSchema, sessionUserSchema, setAcquisitionCostSchema, severitySchema, signupInputSchema, subscriptionSchema, subscriptionStatusSchema, supplierSchema, syncCursorSchema, targetFieldSchema, timeSeriesPointSchema, tokenPairSchema, transactionFilterSchema, transactionSchema, transactionTypeSchema, updateLeadInputSchema, updateOrganizationSettingsInputSchema, upsertAIProviderConfigInputSchema, usageSummarySchema, varianceContributionSchema, varianceTreeSchema, whatChangedResponseSchema };
+export { ACTIVITY_SUBJECTS, ACTIVITY_TYPES, AI_PROVIDER_KINDS, AI_RESPONSE_TYPES, AI_RETENTION_POLICIES, AI_TASKS, AUDIT_ACTIONS, CANVAS_BLOCKS, COLUMN_MATCHES, CONNECTOR_CAPABILITIES, CUSTOMER_STATUSES, DATA_CLASSES, DATA_QUALITY_ISSUE_TYPES, DATA_SOURCE_KINDS, DEFAULT_LOCALE, EXPORT_FORMATS, FORECAST_SCENARIOS, IMPORT_STATES, IMPORT_TRIGGERS, INSIGHT_TYPES, LEAD_STATUSES, LOCALES, METRIC_IDS, METRIC_UNITS, OPPORTUNITY_STAGES, OVERVIEW_SECTIONS, PASSWORD_MIN_LENGTH, PAYMENT_PROVIDERS, PERIOD_GRANULARITIES, PERMISSIONS, PLAN_TIERS, REPORT_SECTION_KINDS, ROLES, ROLE_PERMISSIONS, SCENARIO_TYPES, SEVERITIES, SUBSCRIPTION_STATUSES, TARGET_FIELDS, TRANSACTION_TYPES, acquisitionCategorySchema, activitySchema, activitySubjectSchema, activityTypeSchema, actualPointSchema, aiAnswerSchema, aiConversationSchema, aiMessageSchema, aiPrivacyStatusSchema, aiProviderConfigSchema, aiProviderKindSchema, aiRecommendationSchema, aiResponseTypeSchema, aiRetentionPolicySchema, aiTaskSchema, aiUsageSchema, aiUsageSummarySchema, apiErrorSchema, archetypeSchema, askInputSchema, assumptionSchema, auditActionSchema, auditEventSchema, authResponseSchema, brandingConfigSchema, breakdownItemSchema, budgetSchema, businessCanvasSchema, businessProfileSchema, businessTypeSchema, calculationSchema, canvasBlockIdSchema, canvasBlockSchema, canvasEvidenceSchema, categorySchema, changeItemSchema, checkoutSessionSchema, columnMappingSchema, columnMatchSchema, competitorSchema, confirmMappingInputSchema, connectionHealthSchema, connectorCapabilitySchema, createCheckoutInputSchema, createLeadInputSchema, createOpportunityInputSchema, currencySchema, customerSchema, customerStatusSchema, dashboardSummarySchema, dataClassSchema, dataQualityIssueSchema, dataQualityIssueTypeSchema, dataQualitySummarySchema, dataSourceKindSchema, dataSourceSchema, datasetSchema, declareCanvasBlockSchema, declareCompetitorInputSchema, declareThresholdsSchema, deltaSchema, discoveredEntitySchema, discoveredFieldSchema, discoveredSchemaSchema, effectiveThresholdsSchema, emailSchema, evidenceIdSchema, evidenceSchema, evidenceTransactionSchema, exportFormatSchema, exportRequestSchema, exportResultSchema, forecastPointSchema, forecastScenarioSchema, forecastSchema, generateReportInputSchema, idSchema, importFilterSchema, importMappingSchema, importPreviewSchema, importProgressSchema, importSchema, importStateSchema, importTriggerSchema, insightFilterSchema, insightSchema, insightTypeSchema, insightsResponseSchema, inviteMemberInputSchema, isoDateSchema, isoDateTimeSchema, keyPointSchema, leadFilterSchema, leadSchema, leadStatusSchema, lineageRefSchema, localeSchema, loginInputSchema, memberSchema, membershipSchema, metricIdSchema, metricNodeSpecSchema, metricQuerySchema, metricUnitSchema, metricValueSchema, moneySchema, opportunitySchema, opportunityStageSchema, organizationSchema, organizationSettingsSchema, overviewSectionSchema, overviewShapeSchema, paginatedSchema, paginationQuerySchema, partnerSchema, passwordSchema, paymentProviderSchema, percentageSchema, periodGranularitySchema, periodRangeSchema, periodSchema, permissionSchema, pipelineSummarySchema, planLimitsSchema, planSchema, planTierSchema, previewRowSchema, profileSignalIdSchema, profileSignalSchema, recommendationSchema, refreshInputSchema, reportMetadataSchema, reportSchema, reportSectionKindSchema, reportSectionSchema, requestPasswordResetInputSchema, resetPasswordInputSchema, roleSchema, scenarioImpactSchema, scenarioInputSchema, scenarioResultSchema, scenarioTypeSchema, sessionOrganizationSchema, sessionUserSchema, setAcquisitionCostSchema, severitySchema, signupInputSchema, subscriptionSchema, subscriptionStatusSchema, supplierSchema, syncCursorSchema, targetFieldSchema, thresholdSetSchema, timeSeriesPointSchema, tokenPairSchema, transactionFilterSchema, transactionSchema, transactionTypeSchema, updateLeadInputSchema, updateOrganizationSettingsInputSchema, upsertAIProviderConfigInputSchema, usageSummarySchema, varianceContributionSchema, varianceTreeSchema, whatChangedResponseSchema };

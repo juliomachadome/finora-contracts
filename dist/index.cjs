@@ -1212,6 +1212,43 @@ var declareCanvasBlockSchema = zod.z.object({
    */
   content: zod.z.string().trim().min(1).max(600)
 });
+var thresholdSetSchema = zod.z.object({
+  revenueMinimumFall: zod.z.number(),
+  expenseMinimumRise: zod.z.number(),
+  expenseMinimumShare: zod.z.number(),
+  marginMinimumFall: zod.z.number(),
+  customerMinimumShare: zod.z.number(),
+  customerMinimumExcess: zod.z.number(),
+  minimumConcentration: zod.z.number(),
+  budgetMinimumOverrun: zod.z.number(),
+  budgetMinimumShare: zod.z.number(),
+  runwayAlertMonths: zod.z.number(),
+  cashFallingMonths: zod.z.number()
+});
+var effectiveThresholdsSchema = zod.z.object({
+  archetype: archetypeSchema,
+  /** What the engine will actually judge with. */
+  effective: thresholdSetSchema,
+  /** What this organization would be judged with if it declared nothing. */
+  inherited: thresholdSetSchema,
+  /** The fields deliberately moved, so the screen can mark them. */
+  overridden: zod.z.array(zod.z.string()),
+  /** `[min, max]` per field. The client renders it; the server enforces it. */
+  limits: zod.z.record(zod.z.string(), zod.z.tuple([zod.z.number(), zod.z.number()])),
+  /**
+   * The fingerprint this organization's insights carry.
+   *
+   * On the wire because it is the honest answer to *"are my alerts comparable
+   * to the defaults?"* — and because a screen that changes thresholds should be
+   * able to show that the change took effect.
+   */
+  version: zod.z.string(),
+  declaredBy: zod.z.string().nullable(),
+  declaredAt: isoDateTimeSchema.nullable()
+});
+var declareThresholdsSchema = zod.z.object({
+  overrides: zod.z.record(zod.z.string(), zod.z.number())
+});
 var calculationSchema = zod.z.object({
   metricId: metricIdSchema,
   period: periodSchema,
@@ -1742,10 +1779,12 @@ exports.dataSourceSchema = dataSourceSchema;
 exports.datasetSchema = datasetSchema;
 exports.declareCanvasBlockSchema = declareCanvasBlockSchema;
 exports.declareCompetitorInputSchema = declareCompetitorInputSchema;
+exports.declareThresholdsSchema = declareThresholdsSchema;
 exports.deltaSchema = deltaSchema;
 exports.discoveredEntitySchema = discoveredEntitySchema;
 exports.discoveredFieldSchema = discoveredFieldSchema;
 exports.discoveredSchemaSchema = discoveredSchemaSchema;
+exports.effectiveThresholdsSchema = effectiveThresholdsSchema;
 exports.emailSchema = emailSchema;
 exports.evidenceIdSchema = evidenceIdSchema;
 exports.evidenceSchema = evidenceSchema;
@@ -1833,6 +1872,7 @@ exports.subscriptionStatusSchema = subscriptionStatusSchema;
 exports.supplierSchema = supplierSchema;
 exports.syncCursorSchema = syncCursorSchema;
 exports.targetFieldSchema = targetFieldSchema;
+exports.thresholdSetSchema = thresholdSetSchema;
 exports.timeSeriesPointSchema = timeSeriesPointSchema;
 exports.tokenPairSchema = tokenPairSchema;
 exports.transactionFilterSchema = transactionFilterSchema;

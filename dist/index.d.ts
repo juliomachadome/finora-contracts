@@ -2518,6 +2518,89 @@ declare const declareCanvasBlockSchema: z.ZodObject<{
     content: z.ZodString;
 }, z.core.$strip>;
 type DeclareCanvasBlock = z.infer<typeof declareCanvasBlockSchema>;
+/**
+ * The opinions one organization is judged by (§36, T22).
+ *
+ * ## Why both sets travel, and not only the effective one
+ *
+ * So the screen can say **what was inherited and what was chosen**. A settings
+ * page whose numbers have no provenance is one nobody trusts — and the same
+ * reasoning that makes an insight carry its evidence makes a threshold carry
+ * where it came from.
+ *
+ * ## Why the limits are sent rather than hard-coded in the client
+ *
+ * They are the engine's opinion about what a sane threshold is, and a second
+ * copy in the frontend would disagree the first time one moved. The client
+ * renders the range it was given; the server refuses anything outside it.
+ */
+declare const thresholdSetSchema: z.ZodObject<{
+    revenueMinimumFall: z.ZodNumber;
+    expenseMinimumRise: z.ZodNumber;
+    expenseMinimumShare: z.ZodNumber;
+    marginMinimumFall: z.ZodNumber;
+    customerMinimumShare: z.ZodNumber;
+    customerMinimumExcess: z.ZodNumber;
+    minimumConcentration: z.ZodNumber;
+    budgetMinimumOverrun: z.ZodNumber;
+    budgetMinimumShare: z.ZodNumber;
+    runwayAlertMonths: z.ZodNumber;
+    cashFallingMonths: z.ZodNumber;
+}, z.core.$strip>;
+type ThresholdSet = z.infer<typeof thresholdSetSchema>;
+declare const effectiveThresholdsSchema: z.ZodObject<{
+    archetype: z.ZodEnum<{
+        RECURRING: "RECURRING";
+        PROJECT: "PROJECT";
+        RETAIL: "RETAIL";
+        INDUSTRY: "INDUSTRY";
+        UNDETERMINED: "UNDETERMINED";
+    }>;
+    effective: z.ZodObject<{
+        revenueMinimumFall: z.ZodNumber;
+        expenseMinimumRise: z.ZodNumber;
+        expenseMinimumShare: z.ZodNumber;
+        marginMinimumFall: z.ZodNumber;
+        customerMinimumShare: z.ZodNumber;
+        customerMinimumExcess: z.ZodNumber;
+        minimumConcentration: z.ZodNumber;
+        budgetMinimumOverrun: z.ZodNumber;
+        budgetMinimumShare: z.ZodNumber;
+        runwayAlertMonths: z.ZodNumber;
+        cashFallingMonths: z.ZodNumber;
+    }, z.core.$strip>;
+    inherited: z.ZodObject<{
+        revenueMinimumFall: z.ZodNumber;
+        expenseMinimumRise: z.ZodNumber;
+        expenseMinimumShare: z.ZodNumber;
+        marginMinimumFall: z.ZodNumber;
+        customerMinimumShare: z.ZodNumber;
+        customerMinimumExcess: z.ZodNumber;
+        minimumConcentration: z.ZodNumber;
+        budgetMinimumOverrun: z.ZodNumber;
+        budgetMinimumShare: z.ZodNumber;
+        runwayAlertMonths: z.ZodNumber;
+        cashFallingMonths: z.ZodNumber;
+    }, z.core.$strip>;
+    overridden: z.ZodArray<z.ZodString>;
+    limits: z.ZodRecord<z.ZodString, z.ZodTuple<[z.ZodNumber, z.ZodNumber], null>>;
+    version: z.ZodString;
+    declaredBy: z.ZodNullable<z.ZodString>;
+    declaredAt: z.ZodNullable<z.ZodISODateTime>;
+}, z.core.$strip>;
+type EffectiveThresholds = z.infer<typeof effectiveThresholdsSchema>;
+/**
+ * Declaring thresholds, or importing a set.
+ *
+ * Replaces rather than merges: with a merge there is no gesture for "forget
+ * what I said", and a field once moved could never go back to the published
+ * opinion. An empty object is how an organization returns to inheriting
+ * everything.
+ */
+declare const declareThresholdsSchema: z.ZodObject<{
+    overrides: z.ZodRecord<z.ZodString, z.ZodNumber>;
+}, z.core.$strip>;
+type DeclareThresholds = z.infer<typeof declareThresholdsSchema>;
 
 /**
  * Evidence — the piece that holds up the product's promise.
@@ -4397,4 +4480,4 @@ declare const usageSummarySchema: z.ZodObject<{
 }, z.core.$strip>;
 type UsageSummary = z.infer<typeof usageSummarySchema>;
 
-export { ACTIVITY_SUBJECTS, ACTIVITY_TYPES, type AIAnswer, type AIConversation, type AIMessage, type AIPrivacyStatus, type AIProviderConfig, type AIProviderKind, type AIRecommendation, type AIResponseType, type AIRetentionPolicy, type AITask, type AIUsage, type AIUsageSummary, AI_PROVIDER_KINDS, AI_RESPONSE_TYPES, AI_RETENTION_POLICIES, AI_TASKS, AUDIT_ACTIONS, type AcquisitionCategory, type Activity, type ActivitySubject, type ActivityType, type ActualPoint, type ApiError, type Archetype, type AskInput, type Assumption, type AuditAction, type AuditEvent, type AuthResponse, type BrandingConfig, type BreakdownItem, type Budget, type BusinessCanvas, type BusinessProfile, type BusinessType, CANVAS_BLOCKS, COLUMN_MATCHES, CONNECTOR_CAPABILITIES, CUSTOMER_STATUSES, type Calculation, type CanvasBlock, type CanvasBlockId, type CanvasEvidence, type Category, type ChangeItem, type CheckoutSession, type ColumnMapping, type ColumnMatch, type Competitor, type ConfirmMappingInput, type ConnectionHealth, type ConnectorCapability, type CreateCheckoutInput, type CreateLeadInput, type CreateOpportunityInput, type Currency, type Customer, type CustomerStatus, DATA_CLASSES, DATA_QUALITY_ISSUE_TYPES, DATA_SOURCE_KINDS, DEFAULT_LOCALE, type DashboardSummary, type DataClass, type DataQualityIssue, type DataQualityIssueType, type DataQualitySummary, type DataSource, type DataSourceKind, type Dataset, type DeclareCanvasBlock, type DeclareCompetitorInput, type Delta, type DiscoveredEntity, type DiscoveredField, type DiscoveredSchema, EXPORT_FORMATS, type Evidence, type EvidenceId, type EvidenceTransaction, type ExportFormat, type ExportRequest, type ExportResult, FORECAST_SCENARIOS, type Forecast, type ForecastPoint, type ForecastScenario, type GenerateReportInput, IMPORT_STATES, IMPORT_TRIGGERS, INSIGHT_TYPES, type Id, type Import, type ImportFilter, type ImportMapping, type ImportPreview, type ImportProgress, type ImportState, type ImportTrigger, type Insight, type InsightFilter, type InsightType, type InsightsResponse, type InviteMemberInput, type IsoDate, type IsoDateTime, type KeyPoint, LEAD_STATUSES, LOCALES, type Lead, type LeadFilter, type LeadStatus, type LineageRef, type Locale, type LoginInput, METRIC_IDS, METRIC_UNITS, type Member, type Membership, type MetricId, type MetricNodeSpec, type MetricQuery, type MetricUnit, type MetricValue, type Money, OPPORTUNITY_STAGES, OVERVIEW_SECTIONS, type Opportunity, type OpportunityStage, type Organization, type OrganizationSettings, type OverviewSection, type OverviewShape, PASSWORD_MIN_LENGTH, PAYMENT_PROVIDERS, PERIOD_GRANULARITIES, PERMISSIONS, PLAN_TIERS, type Paginated, type PaginationQuery, type Partner, type PaymentProviderKind, type Percentage, type Period, type PeriodGranularity, type PeriodRange, type Permission, type PipelineSummary, type Plan, type PlanLimits, type PlanTier, type PreviewRow, type ProfileSignal, type ProfileSignalId, REPORT_SECTION_KINDS, ROLES, ROLE_PERMISSIONS, type Recommendation, type RefreshInput, type Report, type ReportMetadata, type ReportSection, type ReportSectionKind, type RequestPasswordResetInput, type ResetPasswordInput, type Role, SCENARIO_TYPES, SEVERITIES, SUBSCRIPTION_STATUSES, type ScenarioImpact, type ScenarioInput, type ScenarioResult, type ScenarioType, type SessionOrganization, type SessionUser, type SetAcquisitionCost, type Severity, type SignupInput, type Subscription, type SubscriptionStatus, type Supplier, type SyncCursor, TARGET_FIELDS, TRANSACTION_TYPES, type TargetField, type TimeSeriesPoint, type TokenPair, type Transaction, type TransactionFilter, type TransactionType, type UpdateLeadInput, type UpdateOrganizationSettingsInput, type UpsertAIProviderConfigInput, type UsageSummary, type VarianceContribution, type VarianceTree, type WhatChangedResponse, acquisitionCategorySchema, activitySchema, activitySubjectSchema, activityTypeSchema, actualPointSchema, aiAnswerSchema, aiConversationSchema, aiMessageSchema, aiPrivacyStatusSchema, aiProviderConfigSchema, aiProviderKindSchema, aiRecommendationSchema, aiResponseTypeSchema, aiRetentionPolicySchema, aiTaskSchema, aiUsageSchema, aiUsageSummarySchema, apiErrorSchema, archetypeSchema, askInputSchema, assumptionSchema, auditActionSchema, auditEventSchema, authResponseSchema, brandingConfigSchema, breakdownItemSchema, budgetSchema, businessCanvasSchema, businessProfileSchema, businessTypeSchema, calculationSchema, canvasBlockIdSchema, canvasBlockSchema, canvasEvidenceSchema, categorySchema, changeItemSchema, checkoutSessionSchema, columnMappingSchema, columnMatchSchema, competitorSchema, confirmMappingInputSchema, connectionHealthSchema, connectorCapabilitySchema, createCheckoutInputSchema, createLeadInputSchema, createOpportunityInputSchema, currencySchema, customerSchema, customerStatusSchema, dashboardSummarySchema, dataClassSchema, dataQualityIssueSchema, dataQualityIssueTypeSchema, dataQualitySummarySchema, dataSourceKindSchema, dataSourceSchema, datasetSchema, declareCanvasBlockSchema, declareCompetitorInputSchema, deltaSchema, discoveredEntitySchema, discoveredFieldSchema, discoveredSchemaSchema, emailSchema, evidenceIdSchema, evidenceSchema, evidenceTransactionSchema, exportFormatSchema, exportRequestSchema, exportResultSchema, forecastPointSchema, forecastScenarioSchema, forecastSchema, generateReportInputSchema, idSchema, importFilterSchema, importMappingSchema, importPreviewSchema, importProgressSchema, importSchema, importStateSchema, importTriggerSchema, insightFilterSchema, insightSchema, insightTypeSchema, insightsResponseSchema, inviteMemberInputSchema, isoDateSchema, isoDateTimeSchema, keyPointSchema, leadFilterSchema, leadSchema, leadStatusSchema, lineageRefSchema, localeSchema, loginInputSchema, memberSchema, membershipSchema, metricIdSchema, metricNodeSpecSchema, metricQuerySchema, metricUnitSchema, metricValueSchema, moneySchema, opportunitySchema, opportunityStageSchema, organizationSchema, organizationSettingsSchema, overviewSectionSchema, overviewShapeSchema, paginatedSchema, paginationQuerySchema, partnerSchema, passwordSchema, paymentProviderSchema, percentageSchema, periodGranularitySchema, periodRangeSchema, periodSchema, permissionSchema, pipelineSummarySchema, planLimitsSchema, planSchema, planTierSchema, previewRowSchema, profileSignalIdSchema, profileSignalSchema, recommendationSchema, refreshInputSchema, reportMetadataSchema, reportSchema, reportSectionKindSchema, reportSectionSchema, requestPasswordResetInputSchema, resetPasswordInputSchema, roleSchema, scenarioImpactSchema, scenarioInputSchema, scenarioResultSchema, scenarioTypeSchema, sessionOrganizationSchema, sessionUserSchema, setAcquisitionCostSchema, severitySchema, signupInputSchema, subscriptionSchema, subscriptionStatusSchema, supplierSchema, syncCursorSchema, targetFieldSchema, timeSeriesPointSchema, tokenPairSchema, transactionFilterSchema, transactionSchema, transactionTypeSchema, updateLeadInputSchema, updateOrganizationSettingsInputSchema, upsertAIProviderConfigInputSchema, usageSummarySchema, varianceContributionSchema, varianceTreeSchema, whatChangedResponseSchema };
+export { ACTIVITY_SUBJECTS, ACTIVITY_TYPES, type AIAnswer, type AIConversation, type AIMessage, type AIPrivacyStatus, type AIProviderConfig, type AIProviderKind, type AIRecommendation, type AIResponseType, type AIRetentionPolicy, type AITask, type AIUsage, type AIUsageSummary, AI_PROVIDER_KINDS, AI_RESPONSE_TYPES, AI_RETENTION_POLICIES, AI_TASKS, AUDIT_ACTIONS, type AcquisitionCategory, type Activity, type ActivitySubject, type ActivityType, type ActualPoint, type ApiError, type Archetype, type AskInput, type Assumption, type AuditAction, type AuditEvent, type AuthResponse, type BrandingConfig, type BreakdownItem, type Budget, type BusinessCanvas, type BusinessProfile, type BusinessType, CANVAS_BLOCKS, COLUMN_MATCHES, CONNECTOR_CAPABILITIES, CUSTOMER_STATUSES, type Calculation, type CanvasBlock, type CanvasBlockId, type CanvasEvidence, type Category, type ChangeItem, type CheckoutSession, type ColumnMapping, type ColumnMatch, type Competitor, type ConfirmMappingInput, type ConnectionHealth, type ConnectorCapability, type CreateCheckoutInput, type CreateLeadInput, type CreateOpportunityInput, type Currency, type Customer, type CustomerStatus, DATA_CLASSES, DATA_QUALITY_ISSUE_TYPES, DATA_SOURCE_KINDS, DEFAULT_LOCALE, type DashboardSummary, type DataClass, type DataQualityIssue, type DataQualityIssueType, type DataQualitySummary, type DataSource, type DataSourceKind, type Dataset, type DeclareCanvasBlock, type DeclareCompetitorInput, type DeclareThresholds, type Delta, type DiscoveredEntity, type DiscoveredField, type DiscoveredSchema, EXPORT_FORMATS, type EffectiveThresholds, type Evidence, type EvidenceId, type EvidenceTransaction, type ExportFormat, type ExportRequest, type ExportResult, FORECAST_SCENARIOS, type Forecast, type ForecastPoint, type ForecastScenario, type GenerateReportInput, IMPORT_STATES, IMPORT_TRIGGERS, INSIGHT_TYPES, type Id, type Import, type ImportFilter, type ImportMapping, type ImportPreview, type ImportProgress, type ImportState, type ImportTrigger, type Insight, type InsightFilter, type InsightType, type InsightsResponse, type InviteMemberInput, type IsoDate, type IsoDateTime, type KeyPoint, LEAD_STATUSES, LOCALES, type Lead, type LeadFilter, type LeadStatus, type LineageRef, type Locale, type LoginInput, METRIC_IDS, METRIC_UNITS, type Member, type Membership, type MetricId, type MetricNodeSpec, type MetricQuery, type MetricUnit, type MetricValue, type Money, OPPORTUNITY_STAGES, OVERVIEW_SECTIONS, type Opportunity, type OpportunityStage, type Organization, type OrganizationSettings, type OverviewSection, type OverviewShape, PASSWORD_MIN_LENGTH, PAYMENT_PROVIDERS, PERIOD_GRANULARITIES, PERMISSIONS, PLAN_TIERS, type Paginated, type PaginationQuery, type Partner, type PaymentProviderKind, type Percentage, type Period, type PeriodGranularity, type PeriodRange, type Permission, type PipelineSummary, type Plan, type PlanLimits, type PlanTier, type PreviewRow, type ProfileSignal, type ProfileSignalId, REPORT_SECTION_KINDS, ROLES, ROLE_PERMISSIONS, type Recommendation, type RefreshInput, type Report, type ReportMetadata, type ReportSection, type ReportSectionKind, type RequestPasswordResetInput, type ResetPasswordInput, type Role, SCENARIO_TYPES, SEVERITIES, SUBSCRIPTION_STATUSES, type ScenarioImpact, type ScenarioInput, type ScenarioResult, type ScenarioType, type SessionOrganization, type SessionUser, type SetAcquisitionCost, type Severity, type SignupInput, type Subscription, type SubscriptionStatus, type Supplier, type SyncCursor, TARGET_FIELDS, TRANSACTION_TYPES, type TargetField, type ThresholdSet, type TimeSeriesPoint, type TokenPair, type Transaction, type TransactionFilter, type TransactionType, type UpdateLeadInput, type UpdateOrganizationSettingsInput, type UpsertAIProviderConfigInput, type UsageSummary, type VarianceContribution, type VarianceTree, type WhatChangedResponse, acquisitionCategorySchema, activitySchema, activitySubjectSchema, activityTypeSchema, actualPointSchema, aiAnswerSchema, aiConversationSchema, aiMessageSchema, aiPrivacyStatusSchema, aiProviderConfigSchema, aiProviderKindSchema, aiRecommendationSchema, aiResponseTypeSchema, aiRetentionPolicySchema, aiTaskSchema, aiUsageSchema, aiUsageSummarySchema, apiErrorSchema, archetypeSchema, askInputSchema, assumptionSchema, auditActionSchema, auditEventSchema, authResponseSchema, brandingConfigSchema, breakdownItemSchema, budgetSchema, businessCanvasSchema, businessProfileSchema, businessTypeSchema, calculationSchema, canvasBlockIdSchema, canvasBlockSchema, canvasEvidenceSchema, categorySchema, changeItemSchema, checkoutSessionSchema, columnMappingSchema, columnMatchSchema, competitorSchema, confirmMappingInputSchema, connectionHealthSchema, connectorCapabilitySchema, createCheckoutInputSchema, createLeadInputSchema, createOpportunityInputSchema, currencySchema, customerSchema, customerStatusSchema, dashboardSummarySchema, dataClassSchema, dataQualityIssueSchema, dataQualityIssueTypeSchema, dataQualitySummarySchema, dataSourceKindSchema, dataSourceSchema, datasetSchema, declareCanvasBlockSchema, declareCompetitorInputSchema, declareThresholdsSchema, deltaSchema, discoveredEntitySchema, discoveredFieldSchema, discoveredSchemaSchema, effectiveThresholdsSchema, emailSchema, evidenceIdSchema, evidenceSchema, evidenceTransactionSchema, exportFormatSchema, exportRequestSchema, exportResultSchema, forecastPointSchema, forecastScenarioSchema, forecastSchema, generateReportInputSchema, idSchema, importFilterSchema, importMappingSchema, importPreviewSchema, importProgressSchema, importSchema, importStateSchema, importTriggerSchema, insightFilterSchema, insightSchema, insightTypeSchema, insightsResponseSchema, inviteMemberInputSchema, isoDateSchema, isoDateTimeSchema, keyPointSchema, leadFilterSchema, leadSchema, leadStatusSchema, lineageRefSchema, localeSchema, loginInputSchema, memberSchema, membershipSchema, metricIdSchema, metricNodeSpecSchema, metricQuerySchema, metricUnitSchema, metricValueSchema, moneySchema, opportunitySchema, opportunityStageSchema, organizationSchema, organizationSettingsSchema, overviewSectionSchema, overviewShapeSchema, paginatedSchema, paginationQuerySchema, partnerSchema, passwordSchema, paymentProviderSchema, percentageSchema, periodGranularitySchema, periodRangeSchema, periodSchema, permissionSchema, pipelineSummarySchema, planLimitsSchema, planSchema, planTierSchema, previewRowSchema, profileSignalIdSchema, profileSignalSchema, recommendationSchema, refreshInputSchema, reportMetadataSchema, reportSchema, reportSectionKindSchema, reportSectionSchema, requestPasswordResetInputSchema, resetPasswordInputSchema, roleSchema, scenarioImpactSchema, scenarioInputSchema, scenarioResultSchema, scenarioTypeSchema, sessionOrganizationSchema, sessionUserSchema, setAcquisitionCostSchema, severitySchema, signupInputSchema, subscriptionSchema, subscriptionStatusSchema, supplierSchema, syncCursorSchema, targetFieldSchema, thresholdSetSchema, timeSeriesPointSchema, tokenPairSchema, transactionFilterSchema, transactionSchema, transactionTypeSchema, updateLeadInputSchema, updateOrganizationSettingsInputSchema, upsertAIProviderConfigInputSchema, usageSummarySchema, varianceContributionSchema, varianceTreeSchema, whatChangedResponseSchema };
