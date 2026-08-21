@@ -81,7 +81,26 @@ export type MetricId = z.infer<typeof metricIdSchema>
  * months, and an `Intl.NumberFormat` with the wrong unit produces a plausible
  * and false number — the worst kind in a financial report.
  */
-export const METRIC_UNITS = ['MONEY', 'PERCENT', 'MONTHS', 'RATIO', 'COUNT'] as const
+export const METRIC_UNITS = [
+  'MONEY',
+  'PERCENT',
+  'MONTHS',
+  'RATIO',
+  'COUNT',
+  /*
+   * Physical units, added by the inventory module (§107, T38).
+   *
+   * `QUANTITY` is things — units sold, units in stock. It differs from `COUNT`
+   * on purpose: a count is how many rows, a quantity is how many items, and a
+   * file with one line for two hundred screws means one of each.
+   *
+   * `DAYS` is duration at the resolution stock is measured in. `MONTHS` is the
+   * wrong grain for it — "48 days of inventory" is a decision and "1.6 months"
+   * is a shrug.
+   */
+  'QUANTITY',
+  'DAYS',
+] as const
 export const metricUnitSchema = z.enum(METRIC_UNITS)
 export type MetricUnit = z.infer<typeof metricUnitSchema>
 

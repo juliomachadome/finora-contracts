@@ -275,7 +275,7 @@ type PaymentProviderKind = z.infer<typeof paymentProviderSchema>;
  * Portuguese is two locales, not one.
  *
  * The financial vocabulary genuinely diverges between Portugal and Brazil —
- * facturação/faturamento, IVA/ICMS, tesouraria/caixa — and serving both markets
+ * `facturação`/`faturamento`, `IVA`/`ICMS`, `tesouraria`/`caixa` — and serving both
  * with a single translation sounds foreign on both sides.
  */
 declare const LOCALES: readonly ["pt-PT", "pt-BR", "es", "en"];
@@ -1715,13 +1715,15 @@ type MetricId = z.infer<typeof metricIdSchema>;
  * months, and an `Intl.NumberFormat` with the wrong unit produces a plausible
  * and false number — the worst kind in a financial report.
  */
-declare const METRIC_UNITS: readonly ["MONEY", "PERCENT", "MONTHS", "RATIO", "COUNT"];
+declare const METRIC_UNITS: readonly ["MONEY", "PERCENT", "MONTHS", "RATIO", "COUNT", "QUANTITY", "DAYS"];
 declare const metricUnitSchema: z.ZodEnum<{
     MONEY: "MONEY";
     PERCENT: "PERCENT";
     MONTHS: "MONTHS";
     RATIO: "RATIO";
     COUNT: "COUNT";
+    QUANTITY: "QUANTITY";
+    DAYS: "DAYS";
 }>;
 type MetricUnit = z.infer<typeof metricUnitSchema>;
 /**
@@ -1763,6 +1765,8 @@ declare const metricNodeSpecSchema: z.ZodObject<{
         MONTHS: "MONTHS";
         RATIO: "RATIO";
         COUNT: "COUNT";
+        QUANTITY: "QUANTITY";
+        DAYS: "DAYS";
     }>;
     dependsOn: z.ZodArray<z.ZodEnum<{
         REVENUE: "REVENUE";
@@ -1828,6 +1832,8 @@ declare const metricValueSchema: z.ZodObject<{
         MONTHS: "MONTHS";
         RATIO: "RATIO";
         COUNT: "COUNT";
+        QUANTITY: "QUANTITY";
+        DAYS: "DAYS";
     }>;
     value: z.ZodNullable<z.ZodNumber>;
     currency: z.ZodNullable<z.ZodString>;
@@ -2034,6 +2040,8 @@ declare const dashboardSummarySchema: z.ZodObject<{
             MONTHS: "MONTHS";
             RATIO: "RATIO";
             COUNT: "COUNT";
+            QUANTITY: "QUANTITY";
+            DAYS: "DAYS";
         }>;
         value: z.ZodNullable<z.ZodNumber>;
         currency: z.ZodNullable<z.ZodString>;

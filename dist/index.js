@@ -232,7 +232,7 @@ var auditActionSchema = z.enum(AUDIT_ACTIONS);
 var idSchema = z.string().uuid();
 var isoDateTimeSchema = z.iso.datetime();
 var isoDateSchema = z.iso.date();
-var periodSchema = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "per\xEDodo tem de ser YYYY-MM");
+var periodSchema = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "period must be YYYY-MM");
 var currencySchema = z.string().length(3).toUpperCase();
 var moneySchema = z.object({
   /** Integer in cents. 1234 = 12.34. Negative is allowed (refunds). */
@@ -285,7 +285,7 @@ var auditEventSchema = z.object({
   createdAt: isoDateTimeSchema
 });
 var PASSWORD_MIN_LENGTH = 12;
-var passwordSchema = z.string().min(PASSWORD_MIN_LENGTH, `m\xEDnimo de ${PASSWORD_MIN_LENGTH} caracteres`).max(200);
+var passwordSchema = z.string().min(PASSWORD_MIN_LENGTH, `at least ${PASSWORD_MIN_LENGTH} characters`).max(200);
 var emailSchema = z.string().email().toLowerCase().trim();
 var signupInputSchema = z.object({
   email: emailSchema,
@@ -869,7 +869,26 @@ var METRIC_IDS = [
   "WIN_RATE"
 ];
 var metricIdSchema = z.enum(METRIC_IDS);
-var METRIC_UNITS = ["MONEY", "PERCENT", "MONTHS", "RATIO", "COUNT"];
+var METRIC_UNITS = [
+  "MONEY",
+  "PERCENT",
+  "MONTHS",
+  "RATIO",
+  "COUNT",
+  /*
+   * Physical units, added by the inventory module (§107, T38).
+   *
+   * `QUANTITY` is things — units sold, units in stock. It differs from `COUNT`
+   * on purpose: a count is how many rows, a quantity is how many items, and a
+   * file with one line for two hundred screws means one of each.
+   *
+   * `DAYS` is duration at the resolution stock is measured in. `MONTHS` is the
+   * wrong grain for it — "48 days of inventory" is a decision and "1.6 months"
+   * is a shrug.
+   */
+  "QUANTITY",
+  "DAYS"
+];
 var metricUnitSchema = z.enum(METRIC_UNITS);
 var metricNodeSpecSchema = z.object({
   id: metricIdSchema,
