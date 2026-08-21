@@ -535,10 +535,20 @@ var TARGET_FIELDS = [
   "ignore"
 ];
 var targetFieldSchema = zod.z.enum(TARGET_FIELDS);
+var COLUMN_MATCHES = ["EXACT", "PARTIAL", "NONE", "MANUAL"];
+var columnMatchSchema = zod.z.enum(COLUMN_MATCHES);
 var columnMappingSchema = zod.z.object({
   sourceColumn: zod.z.string(),
   targetField: targetFieldSchema,
   confidence: zod.z.number().min(0).max(1),
+  /**
+   * Why the suggestion says what it says.
+   *
+   * Optional so a client built against an older contract still validates — the
+   * screen falls back to the sentence it had before, which is the correct
+   * degradation for a field that only makes a warning more specific.
+   */
+  match: columnMatchSchema.optional(),
   /** Detected format, e.g. `DD/MM/YYYY` or `1.234,56`. */
   format: zod.z.string().nullable()
 });
@@ -1454,6 +1464,7 @@ exports.AI_RETENTION_POLICIES = AI_RETENTION_POLICIES;
 exports.AI_TASKS = AI_TASKS;
 exports.AUDIT_ACTIONS = AUDIT_ACTIONS;
 exports.CANVAS_BLOCKS = CANVAS_BLOCKS;
+exports.COLUMN_MATCHES = COLUMN_MATCHES;
 exports.CONNECTOR_CAPABILITIES = CONNECTOR_CAPABILITIES;
 exports.CUSTOMER_STATUSES = CUSTOMER_STATUSES;
 exports.DATA_CLASSES = DATA_CLASSES;
@@ -1520,6 +1531,7 @@ exports.categorySchema = categorySchema;
 exports.changeItemSchema = changeItemSchema;
 exports.checkoutSessionSchema = checkoutSessionSchema;
 exports.columnMappingSchema = columnMappingSchema;
+exports.columnMatchSchema = columnMatchSchema;
 exports.confirmMappingInputSchema = confirmMappingInputSchema;
 exports.connectionHealthSchema = connectionHealthSchema;
 exports.connectorCapabilitySchema = connectorCapabilitySchema;

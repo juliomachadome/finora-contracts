@@ -89,6 +89,27 @@ export const targetFieldSchema = z.enum(TARGET_FIELDS)
 export type TargetField = z.infer<typeof targetFieldSchema>
 
 /**
+ * How the suggestion for a column was arrived at (§27, D10).
+ *
+ * ## Why this travels beside the confidence and does not replace it
+ *
+ * The confidence is a number the interface compares against a threshold. This
+ * is the **reason**, and it is the part that lets a screen say something a
+ * person can act on: "the name contains «data», but it is not exactly that" is
+ * checkable against the file in front of them; "confidence 0.6" is not.
+ *
+ * Deriving it from the confidence in the frontend would put the detector's
+ * thresholds in two places, which is how one of them ends up stale.
+ *
+ * `MANUAL` is what a human choice leaves behind. It is not a match at all, and
+ * recording it as `EXACT` would make the mapping feedback of T13 report a
+ * correction as a confirmed synonym.
+ */
+export const COLUMN_MATCHES = ['EXACT', 'PARTIAL', 'NONE', 'MANUAL'] as const
+export const columnMatchSchema = z.enum(COLUMN_MATCHES)
+export type ColumnMatch = z.infer<typeof columnMatchSchema>
+
+/**
  * Mapping of a column of the file to a domain field (§27).
  *
  * `confidence` feeds the UI: above a threshold it is shown preselected with a
@@ -99,6 +120,14 @@ export const columnMappingSchema = z.object({
   sourceColumn: z.string(),
   targetField: targetFieldSchema,
   confidence: z.number().min(0).max(1),
+  /**
+   * Why the suggestion says what it says.
+   *
+   * Optional so a client built against an older contract still validates — the
+   * screen falls back to the sentence it had before, which is the correct
+   * degradation for a field that only makes a warning more specific.
+   */
+  match: columnMatchSchema.optional(),
   /** Detected format, e.g. `DD/MM/YYYY` or `1.234,56`. */
   format: z.string().nullable(),
 })
