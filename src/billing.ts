@@ -64,7 +64,7 @@ export const planLimitsSchema = z.object({
    * engine would end the claim that the AI interprets and never calculates.
    * This is a row in a table.
    */
-  modules: z.array(z.enum(['COMMERCIAL'])).default([]),
+  modules: z.array(z.enum(['COMMERCIAL', 'INVENTORY'])).default([]),
 })
 export type PlanLimits = z.infer<typeof planLimitsSchema>
 

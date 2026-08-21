@@ -1481,7 +1481,7 @@ var planLimitsSchema = zod.z.object({
    * engine would end the claim that the AI interprets and never calculates.
    * This is a row in a table.
    */
-  modules: zod.z.array(zod.z.enum(["COMMERCIAL"])).default([])
+  modules: zod.z.array(zod.z.enum(["COMMERCIAL", "INVENTORY"])).default([])
 });
 var planSchema = zod.z.object({
   tier: planTierSchema,

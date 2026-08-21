@@ -3993,6 +3993,7 @@ declare const planLimitsSchema: z.ZodObject<{
     auditLogRetentionMonths: z.ZodNullable<z.ZodNumber>;
     modules: z.ZodDefault<z.ZodArray<z.ZodEnum<{
         COMMERCIAL: "COMMERCIAL";
+        INVENTORY: "INVENTORY";
     }>>>;
 }, z.core.$strip>;
 type PlanLimits = z.infer<typeof planLimitsSchema>;
@@ -4022,6 +4023,7 @@ declare const planSchema: z.ZodObject<{
         auditLogRetentionMonths: z.ZodNullable<z.ZodNumber>;
         modules: z.ZodDefault<z.ZodArray<z.ZodEnum<{
             COMMERCIAL: "COMMERCIAL";
+            INVENTORY: "INVENTORY";
         }>>>;
     }, z.core.$strip>;
 }, z.core.$strip>;
