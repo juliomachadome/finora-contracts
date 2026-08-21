@@ -3917,6 +3917,9 @@ declare const planLimitsSchema: z.ZodObject<{
     canExportAuditLog: z.ZodBoolean;
     canWhiteLabel: z.ZodBoolean;
     auditLogRetentionMonths: z.ZodNullable<z.ZodNumber>;
+    modules: z.ZodDefault<z.ZodArray<z.ZodEnum<{
+        COMMERCIAL: "COMMERCIAL";
+    }>>>;
 }, z.core.$strip>;
 type PlanLimits = z.infer<typeof planLimitsSchema>;
 declare const planSchema: z.ZodObject<{
@@ -3943,6 +3946,9 @@ declare const planSchema: z.ZodObject<{
         canExportAuditLog: z.ZodBoolean;
         canWhiteLabel: z.ZodBoolean;
         auditLogRetentionMonths: z.ZodNullable<z.ZodNumber>;
+        modules: z.ZodDefault<z.ZodArray<z.ZodEnum<{
+            COMMERCIAL: "COMMERCIAL";
+        }>>>;
     }, z.core.$strip>;
 }, z.core.$strip>;
 type Plan = z.infer<typeof planSchema>;

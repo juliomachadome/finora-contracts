@@ -43,6 +43,28 @@ export const planLimitsSchema = z.object({
   canExportAuditLog: z.boolean(),
   canWhiteLabel: z.boolean(),
   auditLogRetentionMonths: z.number().int().positive().nullable(),
+  /**
+   * The modules this tier switches on, beyond the core engine (§107, T37, D9).
+   *
+   * ## The core engine is not in here, and that is the decision
+   *
+   * Import, metrics, alerts, the report, scenarios and the forecast are every
+   * tier's, including the cheapest. They cost near nothing per customer — it is
+   * arithmetic over rows already in the database — and charging for them prices
+   * out the company this product exists for, which is the small one that has
+   * nothing today.
+   *
+   * What is metered is the AI, because that is the only part with a real
+   * invoice per use, and bringing your own key removes the meter.
+   *
+   * ## Why a list of names and not a plugin
+   *
+   * A module is a set of **target metrics**; the active graph of an
+   * organization is `requiredFor` of those targets. Third-party code inside the
+   * engine would end the claim that the AI interprets and never calculates.
+   * This is a row in a table.
+   */
+  modules: z.array(z.enum(['COMMERCIAL'])).default([]),
 })
 export type PlanLimits = z.infer<typeof planLimitsSchema>
 
