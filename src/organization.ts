@@ -111,3 +111,70 @@ export const inviteMemberInputSchema = z.object({
   role: roleSchema,
 })
 export type InviteMemberInput = z.infer<typeof inviteMemberInputSchema>
+
+/**
+ * A competitor, as somebody in the organization described them (§34, T32).
+ *
+ * ## Why this is a declaration and carries who made it
+ *
+ * Nothing in an accounting file says who you compete with, and no amount of
+ * arithmetic will produce it. The three ways to know are: ask the customer,
+ * search the web with a cited source, or compare across the tenant base with
+ * opt-in and k-anonymity. This is the first — the cheapest, the most exact, and
+ * the only one with no risk of invention at all.
+ *
+ * What makes it usable rather than decorative is `evidenceId`. The
+ * anti-hallucination guard erases any figure an answer states that is not among
+ * the facts it was given; a competitor with an id of its own is such a fact, and
+ * the trail behind it is a person and a date instead of a file and a row.
+ *
+ * ## Why the price is three fields and not one
+ *
+ * A number alone is not comparable. `priceCents` without `priceUnit` cannot be
+ * set beside your own pricing — €49 per user per month and €49 per project are
+ * not the same claim — and without `priceCurrency` it silently assumes the
+ * organization's own, which is wrong the moment a competitor prices abroad.
+ * All three are optional together: most people know who they compete with long
+ * before they know what that competitor charges, and a form that insists gets a
+ * made-up number.
+ */
+export const competitorSchema = z.object({
+  id: idSchema,
+  name: z.string(),
+  /** Cheaper, larger, a niche, an incumbent — free text, in their words. */
+  positioning: z.string().nullable(),
+  priceCents: z.number().int().nonnegative().nullable(),
+  priceCurrency: currencySchema.nullable(),
+  /** What the price buys: "por utilizador/mês", "por projecto". */
+  priceUnit: z.string().nullable(),
+  notes: z.string().nullable(),
+  /**
+   * What an answer cites when it quotes this row: `declared:competitor:<id>`.
+   *
+   * Built by the server and sent, rather than assembled by whoever reads it.
+   * A format two sides both know how to build is a format that eventually only
+   * one of them changes.
+   */
+  evidenceId: z.string(),
+  declaredBy: z.string().nullable(),
+  declaredAt: isoDateTimeSchema,
+})
+export type Competitor = z.infer<typeof competitorSchema>
+
+/**
+ * Declaring or correcting one.
+ *
+ * The name is the key: writing is an upsert on it, so two people adding the
+ * same competitor on the same morning leave one row and not two. Everything
+ * else is optional, because a competitor whose price nobody knows yet is still
+ * worth writing down.
+ */
+export const declareCompetitorInputSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  positioning: z.string().trim().max(280).nullable().optional(),
+  priceCents: z.number().int().nonnegative().nullable().optional(),
+  priceCurrency: currencySchema.nullable().optional(),
+  priceUnit: z.string().trim().max(60).nullable().optional(),
+  notes: z.string().trim().max(2_000).nullable().optional(),
+})
+export type DeclareCompetitorInput = z.infer<typeof declareCompetitorInputSchema>

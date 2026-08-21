@@ -42,6 +42,18 @@ import { evidenceSchema, calculationSchema } from './evidence.js'
  * - **`doc:<uuid>` or `doc:<uuid>:<line>`** — a value taken from a document the
  *   user attached (§48), anchored to the line that contains it. It is resolved
  *   by asking the server, because the document is not carried in the answer.
+ * - **`declared:competitor:<uuid>`** — something a person in the organization
+ *   wrote down (§34, T32). The trail leads to a name and a date rather than to
+ *   a file and a row, and the interface says so: it is a weaker claim than a
+ *   transaction and a far stronger one than a model's memory.
+ *
+ * ## Why a declaration is a citable fact at all
+ *
+ * Because the alternative is worse. A competitor's price is not in anybody's
+ * accounting file and never will be, so either the product refuses to reason
+ * about it or it lets a model remember one. Letting the customer state it, and
+ * carrying who stated it, is the only version where the number on screen has a
+ * provenance somebody can argue with.
  *
  * ## Why the second shape had to be described here
  *
@@ -55,6 +67,7 @@ import { evidenceSchema, calculationSchema } from './evidence.js'
 export const evidenceIdSchema = z.union([
   idSchema,
   z.string().regex(/^doc:[0-9a-fA-F-]{36}(:\d{1,7})?$/),
+  z.string().regex(/^declared:competitor:[0-9a-fA-F-]{36}$/),
 ])
 export type EvidenceId = z.infer<typeof evidenceIdSchema>
 

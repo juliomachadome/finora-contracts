@@ -396,6 +396,35 @@ var inviteMemberInputSchema = zod.z.object({
   email: zod.z.string().email().toLowerCase().trim(),
   role: roleSchema
 });
+var competitorSchema = zod.z.object({
+  id: idSchema,
+  name: zod.z.string(),
+  /** Cheaper, larger, a niche, an incumbent — free text, in their words. */
+  positioning: zod.z.string().nullable(),
+  priceCents: zod.z.number().int().nonnegative().nullable(),
+  priceCurrency: currencySchema.nullable(),
+  /** What the price buys: "por utilizador/mês", "por projecto". */
+  priceUnit: zod.z.string().nullable(),
+  notes: zod.z.string().nullable(),
+  /**
+   * What an answer cites when it quotes this row: `declared:competitor:<id>`.
+   *
+   * Built by the server and sent, rather than assembled by whoever reads it.
+   * A format two sides both know how to build is a format that eventually only
+   * one of them changes.
+   */
+  evidenceId: zod.z.string(),
+  declaredBy: zod.z.string().nullable(),
+  declaredAt: isoDateTimeSchema
+});
+var declareCompetitorInputSchema = zod.z.object({
+  name: zod.z.string().trim().min(1).max(120),
+  positioning: zod.z.string().trim().max(280).nullable().optional(),
+  priceCents: zod.z.number().int().nonnegative().nullable().optional(),
+  priceCurrency: currencySchema.nullable().optional(),
+  priceUnit: zod.z.string().trim().max(60).nullable().optional(),
+  notes: zod.z.string().trim().max(2e3).nullable().optional()
+});
 var dataSourceSchema = zod.z.object({
   id: idSchema,
   organizationId: idSchema,
@@ -1266,7 +1295,8 @@ var insightFilterSchema = zod.z.object({
 });
 var evidenceIdSchema = zod.z.union([
   idSchema,
-  zod.z.string().regex(/^doc:[0-9a-fA-F-]{36}(:\d{1,7})?$/)
+  zod.z.string().regex(/^doc:[0-9a-fA-F-]{36}(:\d{1,7})?$/),
+  zod.z.string().regex(/^declared:competitor:[0-9a-fA-F-]{36}$/)
 ]);
 var keyPointSchema = zod.z.object({
   type: aiResponseTypeSchema,
@@ -1644,6 +1674,7 @@ exports.changeItemSchema = changeItemSchema;
 exports.checkoutSessionSchema = checkoutSessionSchema;
 exports.columnMappingSchema = columnMappingSchema;
 exports.columnMatchSchema = columnMatchSchema;
+exports.competitorSchema = competitorSchema;
 exports.confirmMappingInputSchema = confirmMappingInputSchema;
 exports.connectionHealthSchema = connectionHealthSchema;
 exports.connectorCapabilitySchema = connectorCapabilitySchema;
@@ -1662,6 +1693,7 @@ exports.dataSourceKindSchema = dataSourceKindSchema;
 exports.dataSourceSchema = dataSourceSchema;
 exports.datasetSchema = datasetSchema;
 exports.declareCanvasBlockSchema = declareCanvasBlockSchema;
+exports.declareCompetitorInputSchema = declareCompetitorInputSchema;
 exports.deltaSchema = deltaSchema;
 exports.discoveredEntitySchema = discoveredEntitySchema;
 exports.discoveredFieldSchema = discoveredFieldSchema;
